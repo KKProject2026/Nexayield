@@ -13,7 +13,15 @@ let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+  const dbName = process.env.DB_NAME || config.database;
+  const dbUser = process.env.DB_USER || config.username;
+  const dbPass = process.env.DB_PASS || config.password;
+  const dbHost = process.env.DB_SERVER || config.host;
+  
+  sequelize = new Sequelize(dbName, dbUser, dbPass, {
+    ...config,
+    host: dbHost
+  });
 }
 
 fs
