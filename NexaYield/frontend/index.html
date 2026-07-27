@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexaYield | Premium Investment Platform</title>
+    <meta name="description" content="NexaYield is a next-generation platform offering daily yields and robust referral systems.">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="landing-nav">
+            <a href="index.html" class="logo" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                <img src="assets/img/logo.png" alt="NexaYield Logo" style="height: 55px; border-radius: 8px;">
+                <span class="text-gradient" style="font-size: 1.5rem; font-weight: 800; letter-spacing: 1px;">NexaYield</span>
+            </a>
+            <div class="nav-buttons">
+                <a href="login.html" class="btn btn-outline" style="margin-right: 10px;">Login</a>
+                <a href="register.html" class="btn btn-primary">Get Started</a>
+            </div>
+        </nav>
+
+        <header class="flex-center" style="min-height: 50vh; text-align: center; flex-direction: column;">
+            <h1 style="font-size: 4rem; line-height: 1.2;">Next-Gen Yields for <br> <span class="text-gradient">Smart Investors</span></h1>
+            <p class="text-muted mb-4" style="font-size: 1.2rem; max-width: 600px;">
+                Earn 2.5% daily profit for 60 days. Secure, automated, and designed for maximizing your crypto portfolio.
+            </p>
+            <div>
+                <a href="register.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 15px 30px;">Start Investing Now</a>
+            </div>
+        </header>
+
+        <section id="plans" style="margin: 80px 0;">
+            <h2 class="text-center mb-4">Investment <span class="text-gradient">Plans</span></h2>
+            <div class="grid-3" id="plans-container">
+                <!-- Plans injected via JS -->
+                <div class="glass-panel text-center">Loading plans...</div>
+            </div>
+        </section>
+    </div>
+
+    <script src="assets/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPlans();
+        });
+    </script>
+</body>
+</html>

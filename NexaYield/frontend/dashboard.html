@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard | NexaYield</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <a href="#" class="sidebar-logo text-gradient" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+            <img src="assets/img/logo.png" alt="Logo" style="height: 45px; border-radius: 8px;">
+            NexaYield
+        </a>
+        <button class="hamburger" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <div class="dashboard-wrapper">
+        
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="sidebar-logo text-gradient" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                    <img src="assets/img/logo.png" alt="Logo" style="height: 45px; border-radius: 8px;">
+                    NexaYield
+                </a>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active" onclick="switchTab('overview')"><i class="fas fa-home" style="width:25px;"></i> Overview</a></li>
+                <li><a href="#" onclick="switchTab('deposit')"><i class="fas fa-wallet" style="width:25px;"></i> Deposit</a></li>
+                <li><a href="#" onclick="switchTab('withdraw')"><i class="fas fa-money-bill-wave" style="width:25px;"></i> Withdraw</a></li>
+                <li style="margin-top: 30px;"><a href="#" onclick="logout()" style="color: var(--danger);"><i class="fas fa-sign-out-alt" style="width:25px;"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="flex-between mb-4">
+                <h2>Welcome, <span id="userName" class="text-gradient">...</span></h2>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="tab-overview">
+                <div class="grid-2 mb-4" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                    <div class="glass-panel stat-card">
+                        <h3>Wallet Balance</h3>
+                        <div class="value text-success" id="w-balance">0.00 <span style="font-size:1rem;color:var(--text-secondary)">USDT</span></div>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <h3>Active Investment</h3>
+                        <div class="value" id="w-invest">0.00 <span style="font-size:1rem;color:var(--text-secondary)">USDT</span></div>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <h3>Expected Daily Earning</h3>
+                        <div class="value text-accent-1" id="w-daily">0.00 <span style="font-size:1rem;color:var(--text-secondary)">USDT/day</span></div>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <h3>Total Profit Received</h3>
+                        <div class="value text-gradient" id="w-profit">0.00 <span style="font-size:1rem;color:var(--text-secondary)">USDT</span></div>
+                    </div>
+                </div>
+
+                <!-- My Active Plans Container -->
+                <div id="my-plans-container" class="mb-4"></div>
+                
+                <div class="grid-2 mb-4">
+                    <div class="glass-panel" style="background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(59,130,246,0.1)); border-color: rgba(139,92,246,0.3);">
+                        <h3 style="display:flex;align-items:center;gap:10px;"><i class="fas fa-users text-accent-2"></i> Referral Program</h3>
+                        <p class="text-muted mb-4">Share your code to earn 10% of their daily profit!</p>
+                        <div class="form-group">
+                            <label>Your Referral Code</label>
+                            <input type="text" id="myRefCode" class="form-control" readonly style="font-weight: 700; color: var(--accent-1); font-size:1.2rem; letter-spacing: 2px;">
+                        </div>
+                        <p>Total Referral Earnings: <strong id="w-ref" class="text-success" style="font-size: 1.2rem;">0.00 USDT</strong></p>
+                    </div>
+                </div>
+
+                <!-- My Referrals List -->
+                <div id="my-referrals-container" class="mb-4 mt-4"></div>
+
+                <!-- Plans in Overview -->
+                <h2 class="mb-4 mt-4">Available <span class="text-gradient">Investment Plans</span></h2>
+                <div class="grid-3" id="plans-container">
+                    <!-- Plans injected via JS -->
+                    <div class="text-center text-muted">Loading plans...</div>
+                </div>
+            </div>
+
+            <!-- Deposit Tab -->
+            <div id="tab-deposit" class="d-none">
+                <div class="glass-panel" style="max-width: 600px;">
+                    <h2 class="mb-4">Make a <span class="text-gradient">Deposit</span></h2>
+                    <div style="background:rgba(234, 179, 8, 0.1); padding:15px; border-radius:8px; border:1px solid rgba(234, 179, 8, 0.3); margin-bottom:25px;">
+                        <p style="margin-bottom:5px; color:var(--text-secondary); font-size:1rem;">Company USDT (BEP20/ERC20) Wallet</p>
+                        <h3 id="display_company_wallet" style="margin:0; font-family:monospace; color:var(--text-primary); font-size:1.2rem; word-break:break-all;">Loading...</h3>
+                    </div>
+
+                    <form id="depositForm">
+                        <div class="form-group">
+                            <label>Select Plan</label>
+                            <select id="dep-plan" class="form-control" required>
+                                <!-- JS injected -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (USDT)</label>
+                            <input type="number" id="dep-amount" class="form-control" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Transaction Hash (TXID)</label>
+                            <input type="text" id="dep-txid" class="form-control" required placeholder="Paste TXID here">
+                        </div>
+                        <div class="form-group">
+                            <label>Upload Payment Screenshot</label>
+                            <input type="file" id="dep-file" class="form-control" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Deposit Request</button>
+                    </form>
+                </div>
+
+                <div class="glass-panel mt-4">
+                    <h3>Deposit <span class="text-gradient">History</span></h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-deposits"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdraw Tab -->
+            <div id="tab-withdraw" class="d-none">
+                <div class="glass-panel" style="max-width: 500px;">
+                    <h2 class="mb-4">Request <span class="text-gradient">Withdrawal</span></h2>
+                    <div style="background:rgba(16,185,129,0.1); padding:15px; border-radius:8px; border:1px solid rgba(16,185,129,0.3); margin-bottom:25px;">
+                        <p style="margin-bottom:5px; color:var(--text-secondary); font-size:0.9rem;">Available Balance</p>
+                        <h2 style="margin:0; color:var(--success);" id="with-avail">0.00 USDT</h2>
+                    </div>
+
+                    <form id="withdrawForm">
+                        <div class="form-group">
+                            <label>Withdrawal Wallet Address (BEP20 / ERC20)</label>
+                            <input type="text" id="with-wallet" class="form-control" required placeholder="0x...">
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (Min 10 USDT)</label>
+                            <input type="number" id="with-amount" class="form-control" min="10" required placeholder="Enter amount to withdraw">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Request</button>
+                    </form>
+                </div>
+
+                <div class="glass-panel mt-4">
+                    <h3>Withdrawal <span class="text-gradient">History</span></h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-withdraws"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="assets/js/main.js"></script>
+    <script>
+        if(localStorage.getItem('role') !== 'user') window.location.href = 'login.html';
+        let plansData = [];
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.add('d-none'));
+            document.getElementById('tab-' + tabId).classList.remove('d-none');
+            
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+            if (event && event.currentTarget && event.currentTarget.classList) {
+                event.currentTarget.classList.add('active');
+            } else {
+                let link = document.querySelector(`.sidebar-menu a[onclick="switchTab('${tabId}')"]`);
+                if (link) link.classList.add('active');
+            }
+
+            if(window.innerWidth <= 992) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+            
+            window.location.hash = tabId;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.replace('#', '');
+            if(hash && document.getElementById('tab-' + hash)) {
+                switchTab(hash);
+            }
+        });
+
+        async function loadDashboard() {
+            const res = await apiCall('/api/user/dashboard');
+            if(res.error) return logout();
+            
+            // Prefill withdraw wallet if user has saved it
+            if(res.wallet_address) {
+                const withWalletInput = document.getElementById('with-wallet');
+                if(withWalletInput) withWalletInput.value = res.wallet_address;
+            }
+
+            document.getElementById('userName').innerText = res.name.split(' ')[0]; // First name
+            document.getElementById('w-balance').innerHTML = res.walletBalance.toFixed(2) + ' <span style="font-size:1rem;color:var(--text-secondary)">USDT</span>';
+            document.getElementById('with-avail').innerText = res.walletBalance.toFixed(2) + ' USDT';
+            document.getElementById('w-invest').innerHTML = res.totalInvestment.toFixed(2) + ' <span style="font-size:1rem;color:var(--text-secondary)">USDT</span>';
+            document.getElementById('w-daily').innerHTML = res.dailyEarning.toFixed(2) + ' <span style="font-size:1rem;color:var(--text-secondary)">USDT/day</span>';
+            document.getElementById('w-profit').innerHTML = res.totalDailyProfit.toFixed(2) + ' <span style="font-size:1rem;color:var(--text-secondary)">USDT</span>';
+            document.getElementById('myRefCode').value = res.referral_code;
+            document.getElementById('w-ref').innerText = res.totalReferralIncome.toFixed(2) + ' USDT';
+            
+            loadHistory();
+            loadMyInvestments();
+            loadMyReferrals();
+            loadCompanyWallet();
+        }
+
+        async function loadCompanyWallet() {
+            const res = await apiCall('/api/user/company-wallet');
+            if(!res.error) {
+                document.getElementById('display_company_wallet').innerText = res.company_wallet;
+            }
+        }
+
+        async function loadMyReferrals() {
+            const res = await apiCall('/api/user/my-referrals');
+            const container = document.getElementById('my-referrals-container');
+            if(res.error || res.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = `
+                <div class="glass-panel">
+                    <h3 class="mb-3">My <span class="text-gradient">Referral Team</span></h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User Name</th>
+                                    <th>Joined On</th>
+                                    <th>Active Investment</th>
+                                    <th>My Earnings From Them</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            res.forEach(r => {
+                html += `
+                    <tr>
+                        <td><strong>${r.name}</strong></td>
+                        <td>${new Date(r.joined_date).toLocaleDateString()}</td>
+                        <td class="${r.total_invested > 0 ? 'text-success' : 'text-muted'}">${r.total_invested > 0 ? r.total_invested.toFixed(2) + ' USDT' : 'No Investment'}</td>
+                        <td class="text-accent-1">${r.earned_from_user.toFixed(2)} USDT</td>
+                    </tr>
+                `;
+            });
+            
+            html += `</tbody></table></div></div>`;
+            container.innerHTML = html;
+        }
+
+        async function loadMyInvestments() {
+            const res = await apiCall('/api/user/my-investments');
+            const container = document.getElementById('my-plans-container');
+            if(res.error || res.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '<h3 class="mb-3">My <span class="text-gradient">Active Plans</span></h3><div class="grid-2">';
+            res.forEach(inv => {
+                const now = new Date();
+                const end = new Date(inv.end_date);
+                const isExpired = now >= end || inv.status === 'Completed';
+                const nextProfit = new Date(inv.next_profit_time);
+                
+                let timeText = '';
+                if(isExpired) {
+                    timeText = '<span class="text-danger">This plan is expired</span>';
+                } else {
+                    const diffTime = Math.abs(end - now);
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    
+                    timeText = `Expires in <span class="text-accent-1">${diffDays} days, ${diffHours} hours</span><br>`;
+                    
+                    if (nextProfit <= now) {
+                        timeText += `Next profit in: <span class="text-success">Processing...</span>`;
+                    } else {
+                        const nextDiff = nextProfit - now;
+                        const nextHours = Math.floor(nextDiff / (1000 * 60 * 60));
+                        const nextMins = Math.floor((nextDiff % (1000 * 60 * 60)) / (1000 * 60));
+                        timeText += `Next profit in: <span class="text-success">${nextHours}h ${nextMins}m</span>`;
+                    }
+                }
+                
+                html += `
+                <div class="glass-panel stat-card" style="position: relative;">
+                    <div style="position: absolute; top: 15px; right: 15px; background: rgba(59, 130, 246, 0.2); padding: 5px 10px; border-radius: 5px; color: var(--accent-1); font-size: 0.8rem; font-weight: bold;">
+                        ${isExpired ? 'EXPIRED' : 'ACTIVE'}
+                    </div>
+                    <h3 style="margin-bottom: 5px;">${inv.plan_name} <span style="font-size: 1rem; color: var(--text-secondary)">(${inv.amount} USDT)</span></h3>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px;">
+                        ${timeText}
+                    </p>
+                    <div style="font-size: 0.9rem;">
+                        Total Earned: <span class="text-gradient" style="font-size: 1.2rem; font-weight: bold; margin-left: 5px;">${inv.total_earned.toFixed(2)} USDT</span>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function loadHistory() {
+            const res = await apiCall('/api/transactions/history');
+            if(!res.error) {
+                // Populate Deposits
+                let depHtml = '';
+                if(res.deposits.length === 0) depHtml = '<tr><td colspan="3" class="text-center text-muted">No deposits yet</td></tr>';
+                res.deposits.forEach(d => {
+                    depHtml += `<tr>
+                        <td>${new Date(d.created_at).toLocaleDateString()}</td>
+                        <td><strong>${d.amount} USDT</strong></td>
+                        <td><span class="badge badge-${d.status.toLowerCase()}">${d.status}</span></td>
+                    </tr>`;
+                });
+                document.getElementById('user-deposits').innerHTML = depHtml;
+
+                // Populate Withdrawals
+                let withHtml = '';
+                if(res.withdrawals.length === 0) withHtml = '<tr><td colspan="3" class="text-center text-muted">No withdrawals yet</td></tr>';
+                res.withdrawals.forEach(w => {
+                    withHtml += `<tr>
+                        <td>${new Date(w.created_at).toLocaleDateString()}</td>
+                        <td><strong>${w.amount} USDT</strong></td>
+                        <td><span class="badge badge-${w.status.toLowerCase()}">${w.status}</span></td>
+                    </tr>`;
+                });
+                document.getElementById('user-withdraws').innerHTML = withHtml;
+            }
+        }
+
+        async function loadPlans() {
+            const res = await apiCall('/api/plans');
+            if(!res.error) {
+                plansData = res;
+                
+                // Populate Dropdown for Deposit Tab
+                const select = document.getElementById('dep-plan');
+                select.innerHTML = '<option value="">Select Plan...</option>';
+                
+                // Populate Grid for Overview Tab
+                const container = document.getElementById('plans-container');
+                let html = '';
+
+                res.forEach(p => {
+                    // Dropdown
+                    select.innerHTML += `<option value="${p.id}">${p.name} - ${p.amount} USDT</option>`;
+                    
+                    // Grid
+                    html += `
+                    <div class="glass-panel plan-card">
+                        <h3>${p.name}</h3>
+                        <div class="plan-price">${p.amount} USDT</div>
+                        <ul class="plan-details">
+                            <li>Daily Return: <strong>${p.daily_percent}%</strong></li>
+                            <li>Duration: <strong>${p.duration_days} Days</strong></li>
+                            <li>Total Return: <strong>${(p.amount * (p.daily_percent/100) * p.duration_days).toFixed(2)} USDT</strong></li>
+                        </ul>
+                        <button onclick="selectPlanFromGrid(${p.id})" class="btn btn-outline" style="width:100%">Select Plan</button>
+                    </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+        }
+
+        function selectPlanFromGrid(id) {
+            switchTab('deposit');
+            // Programmatically set the deposit dropdown
+            const select = document.getElementById('dep-plan');
+            select.value = id;
+            // Trigger change event to update amount
+            select.dispatchEvent(new Event('change'));
+        }
+
+        document.getElementById('dep-plan').addEventListener('change', (e) => {
+            const plan = plansData.find(p => p.id == e.target.value);
+            if(plan) document.getElementById('dep-amount').value = plan.amount;
+        });
+
+        document.getElementById('depositForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = 'Submitting...'; btn.disabled = true;
+
+            const fd = new FormData();
+            fd.append('plan_id', document.getElementById('dep-plan').value);
+            fd.append('amount', document.getElementById('dep-amount').value);
+            fd.append('tx_hash', document.getElementById('dep-txid').value);
+            fd.append('screenshot', document.getElementById('dep-file').files[0]);
+
+            const res = await apiCall('/api/transactions/deposit', 'POST', fd, true);
+            if(res.error) alert(res.error);
+            else {
+                alert(res.message);
+                e.target.reset();
+                switchTab('overview');
+            }
+            btn.innerText = 'Submit Deposit Request'; btn.disabled = false;
+        });
+
+        document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = 'Submitting...'; btn.disabled = true;
+
+            const reqBody = { 
+                amount: document.getElementById('with-amount').value,
+                wallet_address: document.getElementById('with-wallet').value 
+            };
+            const res = await apiCall('/api/transactions/withdraw', 'POST', reqBody);
+            if(res.error) alert(res.error);
+            else {
+                alert(res.message);
+                e.target.reset();
+                loadDashboard();
+            }
+            btn.innerText = 'Submit Request'; btn.disabled = false;
+        });
+
+        window.addEventListener('load', () => {
+            const hash = window.location.hash.replace('#', '');
+            if(hash && document.getElementById('tab-' + hash)) {
+                switchTab(hash);
+            }
+            loadDashboard();
+            loadPlans();
+        });
+    </script>
+</body>
+</html>

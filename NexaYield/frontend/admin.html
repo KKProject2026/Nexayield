@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | NexaYield</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard-grid { grid-template-columns: 200px 1fr; }
+        .sidebar { min-height: 80vh; }
+        .sidebar a { display: block; padding: 15px; color: var(--text-primary); text-decoration: none; border-radius: 8px; margin-bottom: 10px; }
+        .sidebar a.active { background: rgba(59, 130, 246, 0.2); color: var(--accent-1); }
+    </style>
+</head>
+<body>
+    
+    <div class="mobile-header">
+        <a href="#" class="sidebar-logo text-gradient" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+            <img src="assets/img/logo.png" alt="Logo" style="height: 45px; border-radius: 8px;">
+            NexaYield Admin
+        </a>
+        <button class="hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <div class="dashboard-wrapper">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="sidebar-logo text-gradient" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                    <img src="assets/img/logo.png" alt="Logo" style="height: 45px; border-radius: 8px;">
+                    NexaYield
+                </a>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active" onclick="switchTab('dashboard')"><i class="fas fa-chart-line" style="width:25px;"></i> Dashboard</a></li>
+                <li><a href="#" onclick="switchTab('users')"><i class="fas fa-users" style="width:25px;"></i> All Users</a></li>
+                <li><a href="#" onclick="switchTab('deposits')"><i class="fas fa-wallet" style="width:25px;"></i> Deposits</a></li>
+                <li><a href="#" onclick="switchTab('withdrawals')"><i class="fas fa-money-bill-wave" style="width:25px;"></i> Withdrawals</a></li>
+                <li><a href="#" onclick="switchTab('settings')"><i class="fas fa-cog" style="width:25px;"></i> Settings</a></li>
+                <li style="margin-top: 30px;"><a href="#" onclick="logout()" style="color: var(--danger);"><i class="fas fa-sign-out-alt" style="width:25px;"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard">
+                <h2 class="mb-4">Platform <span class="text-gradient">Overview</span></h2>
+                <div class="grid-2 mb-4" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                    <div class="glass-panel stat-card">
+                        <h3>Total Registered Users</h3>
+                        <div class="value text-accent-1" id="a-users">0</div>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <h3>Total Users Balances</h3>
+                        <div class="value text-success" id="a-balances">0.00 USDT</div>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <h3>Total Approved Deposits</h3>
+                        <div class="value text-success" id="a-deposits">0.00 USDT</div>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <h3>Total Paid Withdrawals</h3>
+                        <div class="value text-danger" id="a-withdraws">0.00 USDT</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="tab-users" class="d-none">
+                <h2>All <span class="text-gradient">Users</span></h2>
+                <div class="table-responsive glass-panel mt-4">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Referral Code</th>
+                                <th>Wallet Address</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Deposits Tab -->
+            <div id="tab-deposits" class="d-none">
+                <h2>Pending <span class="text-gradient">Deposits</span></h2>
+                <div class="table-responsive glass-panel mt-4">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>TX Hash</th>
+                                <th>Screenshot</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-deposits"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Withdrawals Tab -->
+            <div id="tab-withdrawals" class="d-none">
+                <h2>Pending <span class="text-gradient">Withdrawals</span></h2>
+                <div class="table-responsive glass-panel mt-4">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Wallet Address</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-withdraws"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="d-none">
+                <h2>Admin <span class="text-gradient">Settings</span></h2>
+                <div class="glass-panel mt-4" style="max-width: 600px;">
+                    <form id="settingsForm">
+                        <div class="form-group">
+                            <label>Company USDT (BEP20/ERC20) Wallet</label>
+                            <input type="text" id="admin_company_wallet" class="form-control" required>
+                            <small class="text-muted">This address will be shown to users when they make a deposit.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="assets/js/main.js"></script>
+    <script>
+        if(localStorage.getItem('role') !== 'admin') window.location.href = 'login.html';
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.add('d-none'));
+            document.getElementById('tab-' + tabId).classList.remove('d-none');
+            
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+            if (event && event.currentTarget && event.currentTarget.classList) {
+                event.currentTarget.classList.add('active');
+            } else {
+                let link = document.querySelector(`.sidebar-menu a[onclick="switchTab('${tabId}')"]`);
+                if (link) link.classList.add('active');
+            }
+
+            if(window.innerWidth <= 992) document.getElementById('sidebar').classList.remove('open');
+            
+            window.location.hash = tabId;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.replace('#', '');
+            if(hash && document.getElementById('tab-' + hash)) {
+                switchTab(hash);
+            }
+        });
+
+        async function loadAdminData() {
+            // Load Dashboard Stats
+            const dashRes = await apiCall('/api/admin/dashboard');
+            if(!dashRes.error) {
+                document.getElementById('a-users').innerText = dashRes.totalUsers;
+                document.getElementById('a-balances').innerText = dashRes.totalBalances.toFixed(2) + ' USDT';
+                document.getElementById('a-deposits').innerText = dashRes.totalDeposits.toFixed(2) + ' USDT';
+                document.getElementById('a-withdraws').innerText = dashRes.totalWithdrawals.toFixed(2) + ' USDT';
+            }
+
+            // Load Settings
+            const setRes = await apiCall('/api/admin/settings');
+            if(!setRes.error) {
+                document.getElementById('admin_company_wallet').value = setRes.company_wallet || '';
+            }
+
+            // Load Users
+            const userRes = await apiCall('/api/admin/users');
+            if(!userRes.error) {
+                let html = '';
+                userRes.forEach(u => {
+                    html += `<tr>
+                        <td><strong>${u.name}</strong></td>
+                        <td>${u.email}</td>
+                        <td class="text-accent-1">${u.referral_code}</td>
+                        <td>${u.wallet_address || '<span class="text-muted">Not Set</span>'}</td>
+                        <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                    </tr>`;
+                });
+                document.getElementById('admin-users').innerHTML = html;
+            }
+
+            // Load Deposits
+            const depRes = await apiCall('/api/admin/deposits');
+            if(!depRes.error) {
+                let html = '';
+                depRes.forEach(d => {
+                    html += `
+                    <tr>
+                        <td>${new Date(d.created_at).toLocaleDateString()}</td>
+                        <td>${d.name} (${d.email})</td>
+                        <td><strong>${d.amount} USDT</strong></td>
+                        <td>${d.tx_hash}</td>
+                        <td><a href="${API_BASE}${d.screenshot}" target="_blank" class="text-accent-1">View</a></td>
+                        <td><span class="badge badge-${d.status.toLowerCase()}">${d.status}</span></td>
+                        <td>
+                            ${d.status === 'Pending' ? `
+                                <button onclick="actionDeposit(${d.id}, 'approve')" class="btn btn-success btn-sm">Approve</button>
+                                <button onclick="actionDeposit(${d.id}, 'reject')" class="btn btn-danger btn-sm">Reject</button>
+                            ` : '-'}
+                        </td>
+                    </tr>`;
+                });
+                document.getElementById('admin-deposits').innerHTML = html;
+            }
+
+            // Load Withdrawals
+            const withRes = await apiCall('/api/admin/withdrawals');
+            if(!withRes.error) {
+                let html = '';
+                withRes.forEach(w => {
+                    html += `
+                    <tr>
+                        <td>${new Date(w.created_at).toLocaleDateString()}</td>
+                        <td>${w.name} (${w.email})</td>
+                        <td><strong>${w.amount} USDT</strong></td>
+                        <td>${w.wallet_address}</td>
+                        <td><span class="badge badge-${w.status.toLowerCase()}">${w.status}</span></td>
+                        <td>
+                            ${w.status === 'Pending' ? `
+                                <button onclick="actionWithdraw(${w.id}, 'approve')" class="btn btn-success btn-sm">Approve</button>
+                                <button onclick="actionWithdraw(${w.id}, 'reject')" class="btn btn-danger btn-sm">Reject</button>
+                            ` : '-'}
+                        </td>
+                    </tr>`;
+                });
+                document.getElementById('admin-withdraws').innerHTML = html;
+            }
+        }
+
+        async function actionDeposit(id, action) {
+            if(!confirm(`Are you sure you want to ${action} this deposit?`)) return;
+            const res = await apiCall(`/api/admin/deposits/${id}/${action}`, 'POST');
+            alert(res.message || res.error);
+            loadAdminData();
+        }
+
+        async function actionWithdraw(id, action) {
+            if(!confirm(`Are you sure you want to ${action} this withdrawal?`)) return;
+            const res = await apiCall(`/api/admin/withdrawals/${id}/${action}`, 'POST');
+            alert(res.message || res.error);
+            loadAdminData();
+        }
+
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                company_wallet: document.getElementById('admin_company_wallet').value
+            };
+            const res = await apiCall('/api/admin/settings', 'POST', data);
+            if(res.error) alert(res.error);
+            else {
+                alert(res.message);
+                loadAdminData();
+            }
+        });
+
+        window.addEventListener('load', () => {
+            const hash = window.location.hash.replace('#', '');
+            if(hash && document.getElementById('tab-' + hash)) {
+                switchTab(hash);
+            }
+            loadAdminData();
+        });
+    </script>
+</body>
+</html>
