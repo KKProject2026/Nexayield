@@ -76,7 +76,8 @@ async function initDb() {
                 start_date DATETIME,
                 end_date DATETIME,
                 next_profit_time DATETIME,
-                status VARCHAR(50) DEFAULT 'Active'
+                status VARCHAR(50) DEFAULT 'Active',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`,
             `CREATE TABLE IF NOT EXISTS DAILY_PROFITS (
                 id INT AUTO_INCREMENT PRIMARY KEY,
