@@ -1,34 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const { poolPromise, sql } = require('../config/db');
-const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
+const db = require('../config/db');
 
-// Seed default plans
+// Seed predefined plans if they don't exist
 const seedPlans = async () => {
     try {
-        const pool = await poolPromise;
-        const result = await pool.request().query('SELECT count(*) as cnt FROM PLANS');
-        
-        if (result.recordset[0].cnt === 0) {
-            const plans = [
-                { name: 'Basic', amount: 100, daily_percent: 2.5, duration_days: 60 },
+        const cnt = await db.PLANS.count();
+        if (cnt === 0) {
+            const initialPlans = [
+                { name: 'Basic', amount: 100, daily_percent: 2, duration_days: 60 },
                 { name: 'Starter', amount: 250, daily_percent: 2.5, duration_days: 60 },
                 { name: 'Silver', amount: 500, daily_percent: 2.5, duration_days: 60 },
                 { name: 'Gold', amount: 1000, daily_percent: 2.5, duration_days: 60 },
                 { name: 'Diamond', amount: 2500, daily_percent: 2.5, duration_days: 60 },
-                { name: 'VIP', amount: 5000, daily_percent: 2.5, duration_days: 60 }
+                { name: 'VIP', amount: 5000, daily_percent: 3, duration_days: 60 }
             ];
             
-            for (let p of plans) {
-                await pool.request()
-                    .input('name', sql.VarChar, p.name)
-                    .input('amount', sql.Decimal(18,2), p.amount)
-                    .input('daily_percent', sql.Decimal(5,2), p.daily_percent)
-                    .input('duration_days', sql.Int, p.duration_days)
-                    .query(`INSERT INTO PLANS (name, amount, daily_percent, duration_days) 
-                            VALUES (@name, @amount, @daily_percent, @duration_days)`);
+            for (let p of initialPlans) {
+                await db.PLANS.create({
+                    name: p.name,
+                    amount: p.amount,
+                    daily_percent: p.daily_percent,
+                    duration_days: p.duration_days
+                });
             }
-            console.log('✅ Default Plans created');
+            console.log('✅ Default Plans Seeded');
         }
     } catch (err) {
         console.error('Seed Plans error:', err);
@@ -37,33 +33,17 @@ const seedPlans = async () => {
 
 seedPlans();
 
-// Get all active plans (Public/User)
+// Get Active Plans
 router.get('/', async (req, res) => {
     try {
-        const pool = await poolPromise;
-        const plans = await pool.request()
-            .query("SELECT * FROM PLANS WHERE status = 'Active'");
-        res.json(plans.recordset);
+        const plans = await db.PLANS.findAll({
+            where: { status: 'Active' },
+            order: [['amount', 'ASC']]
+        });
+        res.json(plans);
     } catch (err) {
-        res.status(500).json({ error: "Server error" });
-    }
-});
-
-// Admin: Add new plan
-router.post('/', verifyToken, isAdmin, async (req, res) => {
-    const { name, amount, daily_percent, duration_days } = req.body;
-    try {
-        const pool = await poolPromise;
-        await pool.request()
-            .input('name', sql.VarChar, name)
-            .input('amount', sql.Decimal(18,2), amount)
-            .input('daily_percent', sql.Decimal(5,2), daily_percent)
-            .input('duration_days', sql.Int, duration_days)
-            .query(`INSERT INTO PLANS (name, amount, daily_percent, duration_days) 
-                    VALUES (@name, @amount, @daily_percent, @duration_days)`);
-        res.status(201).json({ message: "Plan created" });
-    } catch (err) {
-        res.status(500).json({ error: "Server error" });
+        console.error(err);
+        res.status(500).json({ error: "Server error fetching plans" });
     }
 });
 

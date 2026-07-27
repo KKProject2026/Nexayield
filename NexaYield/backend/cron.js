@@ -1,49 +1,49 @@
 const cron = require('node-cron');
-const { poolPromise, sql } = require('./config/db');
+const db = require('./config/db');
+const { Op } = require('sequelize');
 
 // Run every minute to check for due profits
 cron.schedule('* * * * *', async () => {
     try {
-        const pool = await poolPromise;
         const now = new Date();
         
         // Get due investments
-        const dueInvestments = await pool.request()
-            .input('now', sql.DateTime, now)
-            .query("SELECT * FROM USER_INVESTMENTS WHERE status = 'Active' AND next_profit_time <= @now");
+        const dueInvestments = await db.USER_INVESTMENTS.findAll({
+            where: {
+                status: 'Active',
+                next_profit_time: { [Op.lte]: now }
+            }
+        });
             
-        for (let inv of dueInvestments.recordset) {
+        for (let inv of dueInvestments) {
             
             // 1. Give User Daily Profit
-            await pool.request()
-                .input('investment_id', sql.Int, inv.id)
-                .input('amount', sql.Decimal(18,2), inv.daily_profit)
-                .input('profit_date', sql.DateTime, now)
-                .query(`INSERT INTO DAILY_PROFITS (investment_id, amount, profit_date, status) 
-                        VALUES (@investment_id, @amount, @profit_date, 'Paid')`);
+            await db.DAILY_PROFITS.create({
+                investment_id: inv.id,
+                amount: inv.daily_profit,
+                status: 'Paid',
+                created_at: now
+            });
                         
             // 2. Check for Referrer (10% Bonus)
-            const userRes = await pool.request()
-                .input('user_id', sql.Int, inv.user_id)
-                .query("SELECT referred_by FROM USERS WHERE id = @user_id");
-                
-            const referred_by = userRes.recordset[0].referred_by;
+            const user = await db.USERS.findByPk(inv.user_id);
+            const referred_by = user ? user.referred_by : null;
             
             if (referred_by) {
                 const refBonus = inv.daily_profit * 0.10; // 10%
-                await pool.request()
-                    .input('referrer_id', sql.Int, referred_by)
-                    .input('referred_user_id', sql.Int, inv.user_id)
-                    .input('investment_id', sql.Int, inv.id)
-                    .input('profit_amount', sql.Decimal(18,2), refBonus)
-                    .input('profit_date', sql.DateTime, now)
-                    .query(`INSERT INTO REFERRAL_EARNINGS 
-                            (referrer_id, referred_user_id, investment_id, profit_amount, profit_date, status)
-                            VALUES (@referrer_id, @referred_user_id, @investment_id, @profit_amount, @profit_date, 'Paid')`);
+                await db.REFERRAL_EARNINGS.create({
+                    referrer_id: referred_by,
+                    referred_user_id: inv.user_id,
+                    investment_id: inv.id,
+                    profit_amount: refBonus,
+                    status: 'Paid',
+                    created_at: now
+                });
             }
             
             // 3. Update Investment Status
-            const newCompletedDays = inv.completed_days + 1;
+            // Wait, in previous code it used completed_days, but schema has days_passed. Let's fix that.
+            const newCompletedDays = (inv.days_passed || 0) + 1;
             let newStatus = 'Active';
             let nextProfitTime = new Date(inv.next_profit_time);
             nextProfitTime.setDate(nextProfitTime.getDate() + 1); // Add 24 hours
@@ -52,14 +52,11 @@ cron.schedule('* * * * *', async () => {
                 newStatus = 'Completed';
             }
             
-            await pool.request()
-                .input('id', sql.Int, inv.id)
-                .input('completed_days', sql.Int, newCompletedDays)
-                .input('status', sql.VarChar, newStatus)
-                .input('next_profit_time', sql.DateTime, nextProfitTime)
-                .query(`UPDATE USER_INVESTMENTS 
-                        SET completed_days = @completed_days, status = @status, next_profit_time = @next_profit_time 
-                        WHERE id = @id`);
+            await inv.update({
+                days_passed: newCompletedDays,
+                status: newStatus,
+                next_profit_time: nextProfitTime
+            });
                         
             console.log(`✅ Processed profit for Investment ID: ${inv.id}`);
         }

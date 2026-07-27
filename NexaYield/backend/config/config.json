@@ -1,0 +1,37 @@
+{
+  "development": {
+    "username": "root",
+    "password": "",
+    "database": "earnkk",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "pool": {
+      "max": 20,
+      "min": 2,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "dialectOptions": {
+      "connectTimeout": 30000
+    },
+    "timezone": "+05:30",
+    "logging": false
+  },
+  "test": {
+    "username": "root",
+    "password": "",
+    "database": "database_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "logging": false
+  },
+  "production": {
+    "username": "root",
+    "password": "",
+    "database": "earnkk",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "timezone": "+05:30",
+    "logging": false
+  }
+}

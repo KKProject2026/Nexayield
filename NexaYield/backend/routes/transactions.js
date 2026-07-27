@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { poolPromise, sql } = require('../config/db');
-const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
+const db = require('../config/db');
+const { verifyToken } = require('../middleware/authMiddleware');
+const { Op, QueryTypes } = require('sequelize');
 
 // Multer Config
 const storage = multer.diskStorage({
@@ -18,19 +19,19 @@ const upload = multer({ storage });
 router.get('/history', verifyToken, async (req, res) => {
     if (req.userRole !== 'user') return res.status(403).json({ error: "Only users" });
     try {
-        const pool = await poolPromise;
-        const deposits = await pool.request()
-            .input('user_id', sql.Int, req.userId)
-            .query("SELECT amount, status, created_at FROM DEPOSITS WHERE user_id = @user_id ORDER BY created_at DESC");
-            
-        const withdrawals = await pool.request()
-            .input('user_id', sql.Int, req.userId)
-            .query("SELECT amount, status, created_at FROM WITHDRAWALS WHERE user_id = @user_id ORDER BY created_at DESC");
-
-        res.json({
-            deposits: deposits.recordset,
-            withdrawals: withdrawals.recordset
+        const deposits = await db.DEPOSITS.findAll({
+            where: { user_id: req.userId },
+            attributes: ['amount', 'status', 'created_at'],
+            order: [['created_at', 'DESC']]
         });
+            
+        const withdrawals = await db.WITHDRAWALS.findAll({
+            where: { user_id: req.userId },
+            attributes: ['amount', 'status', 'created_at'],
+            order: [['created_at', 'DESC']]
+        });
+
+        res.json({ deposits, withdrawals });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Server error" });
@@ -46,20 +47,16 @@ router.post('/deposit', verifyToken, upload.single('screenshot'), async (req, re
     if (!screenshot || !tx_hash) return res.status(400).json({ error: "Screenshot and TX Hash are required" });
 
     try {
-        const pool = await poolPromise;
-        // Verify Plan
-        const planResult = await pool.request()
-            .input('id', sql.Int, plan_id)
-            .query("SELECT * FROM PLANS WHERE id = @id");
-        if (planResult.recordset.length === 0) return res.status(400).json({ error: "Invalid Plan" });
+        const plan = await db.PLANS.findByPk(plan_id);
+        if (!plan) return res.status(400).json({ error: "Invalid Plan" });
 
-        await pool.request()
-            .input('user_id', sql.Int, req.userId)
-            .input('amount', sql.Decimal(18,2), amount)
-            .input('tx_hash', sql.VarChar, tx_hash)
-            .input('screenshot', sql.VarChar, screenshot)
-            .query(`INSERT INTO DEPOSITS (user_id, amount, tx_hash, screenshot, status) 
-                    VALUES (@user_id, @amount, @tx_hash, @screenshot, 'Pending')`);
+        await db.DEPOSITS.create({
+            user_id: req.userId,
+            amount: amount,
+            tx_hash: tx_hash,
+            screenshot: screenshot,
+            status: 'Pending'
+        });
         
         res.status(201).json({ message: "Deposit submitted for approval!" });
     } catch (err) {
@@ -77,37 +74,32 @@ router.post('/withdraw', verifyToken, async (req, res) => {
     if (!wallet_address) return res.status(400).json({ error: "Please enter your wallet address." });
 
     try {
-        const pool = await poolPromise;
-        
-        // Optionally update the user's saved wallet if they provided a new one
-        await pool.request()
-            .input('id', sql.Int, req.userId)
-            .input('wallet_address', sql.VarChar, wallet_address)
-            .query("UPDATE USERS SET wallet_address = @wallet_address WHERE id = @id");
+        // Update user wallet
+        await db.USERS.update({ wallet_address }, { where: { id: req.userId } });
 
         // Calculate Balance
-        const dpRes = await pool.request()
-            .input('user_id', sql.Int, req.userId)
-            .query(`SELECT ISNULL(SUM(dp.amount), 0) as amt FROM DAILY_PROFITS dp JOIN USER_INVESTMENTS ui ON dp.investment_id = ui.id WHERE ui.user_id = @user_id AND dp.status = 'Paid'`);
+        const dpRes = await db.sequelize.query(`
+            SELECT IFNULL(SUM(dp.amount), 0) as amt 
+            FROM DAILY_PROFITS dp 
+            JOIN USER_INVESTMENTS ui ON dp.investment_id = ui.id 
+            WHERE ui.user_id = :userId AND dp.status = 'Paid'
+        `, { replacements: { userId: req.userId }, type: QueryTypes.SELECT });
+        const totalDailyProfit = parseFloat(dpRes[0].amt) || 0;
         
-        const refRes = await pool.request()
-            .input('user_id', sql.Int, req.userId)
-            .query(`SELECT ISNULL(SUM(profit_amount), 0) as amt FROM REFERRAL_EARNINGS WHERE referrer_id = @user_id AND status = 'Paid'`);
-            
-        const wRes = await pool.request()
-            .input('user_id', sql.Int, req.userId)
-            .query(`SELECT ISNULL(SUM(amount), 0) as amt FROM WITHDRAWALS WHERE user_id = @user_id AND status != 'Rejected'`);
-            
-        const balance = (dpRes.recordset[0].amt + refRes.recordset[0].amt) - wRes.recordset[0].amt;
+        const totalReferralIncome = await db.REFERRAL_EARNINGS.sum('profit_amount', { where: { referrer_id: req.userId, status: 'Paid' } }) || 0;
+        const totalWithdrawn = await db.WITHDRAWALS.sum('amount', { where: { user_id: req.userId, status: { [Op.ne]: 'Rejected' } } }) || 0;
+        const totalMilestoneRewards = await db.MILESTONE_REWARDS.sum('reward_amount', { where: { user_id: req.userId } }) || 0;
+
+        const balance = (totalDailyProfit + totalReferralIncome + totalMilestoneRewards) - totalWithdrawn;
 
         if (amount > balance) return res.status(400).json({ error: "Insufficient balance" });
 
-        await pool.request()
-            .input('user_id', sql.Int, req.userId)
-            .input('amount', sql.Decimal(18,2), amount)
-            .input('wallet_address', sql.VarChar, wallet_address)
-            .query(`INSERT INTO WITHDRAWALS (user_id, amount, wallet_address, status) 
-                    VALUES (@user_id, @amount, @wallet_address, 'Pending')`);
+        await db.WITHDRAWALS.create({
+            user_id: req.userId,
+            amount: amount,
+            wallet_address: wallet_address,
+            status: 'Pending'
+        });
                     
         res.status(201).json({ message: "Withdrawal request submitted!" });
     } catch (err) {
