@@ -58,7 +58,8 @@ router.post('/register', async (req, res) => {
             referred_by
         });
         
-        res.status(201).json({ message: "Registration successful!" });
+        const token = jwt.sign({ id: newUser.id, role: 'user' }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        res.status(201).json({ message: "Registration successful!", token, role: 'user' });
         
     } catch (err) {
         console.error(err);
