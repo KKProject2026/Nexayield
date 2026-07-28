@@ -109,9 +109,9 @@ router.post('/deposits/:id/approve', verifyToken, isAdmin, async (req, res) => {
             const totalVolume = parseFloat(volumeRes[0].total_volume);
 
             const milestones = [
-                { volume: 10000, reward: 500 },
-                { volume: 20000, reward: 1000 },
-                { volume: 50000, reward: 3000 }
+                { volume: 10000, reward: 50 },
+                { volume: 20000, reward: 100 },
+                { volume: 50000, reward: 1000 }
             ];
 
             for (let ms of milestones) {
@@ -182,6 +182,16 @@ router.post('/withdrawals/:id/reject', verifyToken, isAdmin, async (req, res) =>
         const w = await db.WITHDRAWALS.findByPk(req.params.id);
         if (w) await w.update({ status: 'Rejected' });
         res.json({ message: "Withdrawal rejected" });
+    } catch (err) {
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// Get Settings
+router.get('/settings', verifyToken, isAdmin, async (req, res) => {
+    try {
+        const setting = await db.SETTINGS.findOne();
+        res.json(setting || {});
     } catch (err) {
         res.status(500).json({ error: "Server error" });
     }

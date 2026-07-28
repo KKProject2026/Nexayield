@@ -34,18 +34,19 @@
                 <li><a href="#" class="active" onclick="switchTab('overview')"><i class="fas fa-home" style="width:25px;"></i> Overview</a></li>
                 <li><a href="#" onclick="switchTab('deposit')"><i class="fas fa-wallet" style="width:25px;"></i> Deposit</a></li>
                 <li><a href="#" onclick="switchTab('withdraw')"><i class="fas fa-money-bill-wave" style="width:25px;"></i> Withdraw</a></li>
+                <li><a href="#" onclick="switchTab('support')"><i class="fa-solid fa-headset" style="width:25px;"></i> Support</a></li>
                 <li style="margin-top: 30px;"><a href="#" onclick="logout()" style="color: var(--danger);"><i class="fas fa-sign-out-alt" style="width:25px;"></i> Logout</a></li>
             </ul>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
-            <div class="flex-between mb-4">
-                <h2>Welcome, <span id="userName" class="text-gradient">...</span></h2>
-            </div>
-
+            
             <!-- Overview Tab -->
             <div id="tab-overview">
+                <div class="flex-between mb-4">
+                    <h2>Welcome, <span id="userName" class="text-gradient">...</span></h2>
+                </div>
                 <div class="grid-2 mb-4" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
                     <div class="glass-panel stat-card">
                         <h3>Wallet Balance</h3>
@@ -71,13 +72,26 @@
                 <div class="grid-2 mb-4">
                     <div class="glass-panel" style="background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(59,130,246,0.1)); border-color: rgba(139,92,246,0.3);">
                         <h3 style="display:flex;align-items:center;gap:10px;"><i class="fas fa-users text-accent-2"></i> Referral Program</h3>
-                        <p class="text-muted mb-4">Share your code to earn 10% of their daily profit!</p>
+                        <p class="text-muted mb-4">Share your code to earn <strong>10% of their daily profit</strong> automatically!</p>
                         <div class="form-group">
                             <label>Your Referral Code</label>
-                            <input type="text" id="myRefCode" class="form-control" readonly style="font-weight: 700; color: var(--accent-1); font-size:1.2rem; letter-spacing: 2px;">
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <h4 id="user_ref_code" class="text-gradient" style="margin:0;">-</h4>
+                                <button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="copyReferralCode()"><i class="fa-solid fa-copy"></i></button>
+                            </div>
                         </div>
                         <p>Total Referral Earnings: <strong id="w-ref" class="text-success" style="font-size: 1.2rem;">0.00 USDT</strong></p>
                         <p>Milestone Bonus: <strong id="w-milestone" class="text-gradient" style="font-size: 1.2rem;">0.00 USDT</strong></p>
+                    </div>
+                    
+                    <div class="glass-panel stat-card" style="display:flex; flex-direction:column; justify-content:center;">
+                        <h3>Milestone Rewards</h3>
+                        <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 10px;">Get huge bonuses when your referrals reach total investment milestones:</p>
+                        <ul style="list-style: none; padding: 0; margin: 0; display:flex; flex-direction:column; gap:8px; font-size: 0.95rem;">
+                            <li>✅ <strong>10K USDT</strong> volume = <strong class="text-success">50 USDT</strong> Reward</li>
+                            <li>✅ <strong>20K USDT</strong> volume = <strong class="text-success">100 USDT</strong> Reward</li>
+                            <li>✅ <strong>50K USDT</strong> volume = <strong class="text-success">1,000 USDT</strong> Reward</li>
+                        </ul>
                     </div>
                 </div>
 
@@ -97,7 +111,7 @@
                 <div class="glass-panel" style="max-width: 600px;">
                     <h2 class="mb-4">Make a <span class="text-gradient">Deposit</span></h2>
                     <div style="background:rgba(234, 179, 8, 0.1); padding:15px; border-radius:8px; border:1px solid rgba(234, 179, 8, 0.3); margin-bottom:25px;">
-                        <p style="margin-bottom:5px; color:var(--text-secondary); font-size:1rem;">Company USDT (BEP20/ERC20) Wallet</p>
+                        <p style="margin-bottom:5px; color:var(--text-secondary); font-size:1rem;">Company USDT (BEP20) Wallet</p>
                         <h3 id="display_company_wallet" style="margin:0; font-family:monospace; color:var(--text-primary); font-size:1.2rem; word-break:break-all;">Loading...</h3>
                     </div>
 
@@ -152,7 +166,7 @@
 
                     <form id="withdrawForm">
                         <div class="form-group">
-                            <label>Withdrawal Wallet Address (BEP20 / ERC20)</label>
+                            <label>Withdrawal Wallet Address (BEP20)</label>
                             <input type="text" id="with-wallet" class="form-control" required placeholder="0x...">
                         </div>
                         <div class="form-group">
@@ -179,6 +193,21 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Support Section -->
+            <div id="tab-support" class="content-section d-none">
+                <div class="glass-panel" style="display: flex; flex-direction: column; height: 80vh; width: 100%; padding: 15px; margin: 0 auto;">
+                    <h2 class="mb-4">Chat with <span class="text-gradient">Support</span></h2>
+                    
+                    <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 15px; border-radius: 12px; background: #f8fafc; border: 1px solid var(--border); margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Messages will load here -->
+                    </div>
+
+                    <form id="chatForm" style="display: flex; gap: 10px; background: var(--bg-card); padding: 10px; border-radius: 50px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                        <input type="text" id="chat-input" class="form-control" placeholder="Type your message..." required style="flex: 1; border: none; background: transparent; padding-left: 15px; box-shadow: none;">
+                        <button type="submit" class="btn btn-primary" style="border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;"><i class="fa-solid fa-paper-plane"></i></button>
+                    </form>
+                </div>
             </div>
 
         </div>
@@ -237,7 +266,7 @@
             document.getElementById('w-daily').innerHTML = res.dailyEarning.toFixed(2) + ' <span style="font-size:1rem;color:var(--text-secondary)">USDT/day</span>';
             document.getElementById('w-profit').innerHTML = res.totalDailyProfit.toFixed(2) + ' <span style="font-size:1rem;color:var(--text-secondary)">USDT</span>';
             
-            document.getElementById('myRefCode').value = res.referral_code;
+            document.getElementById('user_ref_code').innerText = res.referral_code;
             document.getElementById('w-ref').innerText = res.totalReferralIncome.toFixed(2) + ' USDT';
             document.getElementById('w-milestone').innerText = res.totalMilestoneRewards.toFixed(2) + ' USDT';
             
@@ -257,8 +286,19 @@
         async function loadMyReferrals() {
             const res = await apiCall('/api/user/my-referrals');
             const container = document.getElementById('my-referrals-container');
-            if(res.error || res.length === 0) {
-                container.innerHTML = '';
+            
+            if(res.error) {
+                container.innerHTML = `<div class="glass-panel text-center text-danger" style="padding: 30px;">Error loading referrals: ${res.error}</div>`;
+                return;
+            }
+            
+            if(!res || !res.length || res.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-panel text-center" style="padding: 30px;">
+                        <h3 class="mb-3">My <span class="text-gradient">Referral Team</span></h3>
+                        <p class="text-muted">You haven't referred anyone yet. Share your code to start building your team and earning 10% of their daily profit!</p>
+                    </div>
+                `;
                 return;
             }
             
@@ -279,12 +319,15 @@
             `;
             
             res.forEach(r => {
+                const totalInv = parseFloat(r.total_invested) || 0;
+                const earned = parseFloat(r.earned_from_user) || 0;
+                
                 html += `
                     <tr>
                         <td><strong>${r.name}</strong></td>
                         <td>${new Date(r.joined_date).toLocaleDateString()}</td>
-                        <td class="${r.total_invested > 0 ? 'text-success' : 'text-muted'}">${r.total_invested > 0 ? r.total_invested.toFixed(2) + ' USDT' : 'No Investment'}</td>
-                        <td class="text-accent-1">${r.earned_from_user.toFixed(2)} USDT</td>
+                        <td class="${totalInv > 0 ? 'text-success' : 'text-muted'}">${totalInv > 0 ? totalInv.toFixed(2) + ' USDT' : 'No Investment'}</td>
+                        <td class="text-accent-1">${earned.toFixed(2)} USDT</td>
                     </tr>
                 `;
             });
@@ -440,6 +483,7 @@
             else {
                 alert(res.message);
                 e.target.reset();
+                loadDashboard();
                 switchTab('overview');
             }
             btn.innerText = 'Submit Deposit Request'; btn.disabled = false;
@@ -464,6 +508,59 @@
             btn.innerText = 'Submit Request'; btn.disabled = false;
         });
 
+        // Copy Referral Code
+        function copyReferralCode() {
+            const code = document.getElementById('user_ref_code').innerText;
+            if(code !== '-') {
+                navigator.clipboard.writeText(code);
+                alert("Referral code copied!");
+            }
+        }
+
+        // Support Chat Logic
+        async function loadChat() {
+            const res = await apiCall('/api/support');
+            if(res.error) return;
+            
+            const container = document.getElementById('chat-messages');
+            let html = '';
+            res.forEach(msg => {
+                const isUser = msg.sender === 'user';
+                const align = isUser ? 'flex-end' : 'flex-start';
+                const bg = isUser ? 'linear-gradient(135deg, var(--accent-1), var(--accent-2))' : '#ffffff';
+                const color = isUser ? '#fff' : 'var(--text-primary)';
+                const shadow = '0 2px 5px rgba(0,0,0,0.05)';
+                const border = isUser ? 'none' : '1px solid var(--border)';
+                const radius = isUser ? '15px 15px 0 15px' : '15px 15px 15px 0';
+                
+                html += `
+                    <div style="align-self: ${align}; background: ${bg}; color: ${color}; padding: 12px 18px; border-radius: ${radius}; border: ${border}; box-shadow: ${shadow}; max-width: 80%;">
+                        <div style="font-size: 0.95rem; line-height: 1.4;">${msg.message}</div>
+                        <div style="font-size: 0.7rem; opacity: 0.8; margin-top: 5px; text-align: right;">${new Date(msg.created_at).toLocaleString()}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        document.getElementById('chatForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const message = input.value;
+            input.value = '';
+            
+            await apiCall('/api/support', 'POST', { message });
+            loadChat();
+        });
+
+        // Background polling for real-time updates
+        setInterval(() => {
+            loadDashboard();
+            if(!document.getElementById('tab-support').classList.contains('d-none')) {
+                loadChat();
+            }
+        }, 10000); // 10 seconds
+
         window.addEventListener('load', () => {
             const hash = window.location.hash.replace('#', '');
             if(hash && document.getElementById('tab-' + hash)) {
@@ -471,6 +568,7 @@
             }
             loadDashboard();
             loadPlans();
+            loadChat();
         });
     </script>
 </body>

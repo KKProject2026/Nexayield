@@ -17,11 +17,20 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes mapping
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/user', require('./routes/user'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/plans', require('./routes/plans'));
-app.use('/api/transactions', require('./routes/transactions'));
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
+const adminRoutes = require('./routes/admin');
+const transactionRoutes = require('./routes/transactions');
+const planRoutes = require('./routes/plans');
+const supportRoutes = require('./routes/support');
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/plans', planRoutes);
+app.use('/api/support', supportRoutes);
 
 // Initialize Cron Jobs
 require('./cron');

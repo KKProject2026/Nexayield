@@ -109,6 +109,14 @@ async function initDb() {
                 milestone_amount DECIMAL(18,2),
                 reward_amount DECIMAL(18,2),
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS SUPPORT_MESSAGES (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT,
+                sender VARCHAR(50) DEFAULT 'user',
+                message TEXT,
+                is_read BOOLEAN DEFAULT FALSE,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`
         ];
 

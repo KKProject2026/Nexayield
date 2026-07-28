@@ -36,6 +36,7 @@
                 <li><a href="#" onclick="switchTab('users')"><i class="fas fa-users" style="width:25px;"></i> All Users</a></li>
                 <li><a href="#" onclick="switchTab('deposits')"><i class="fas fa-wallet" style="width:25px;"></i> Deposits</a></li>
                 <li><a href="#" onclick="switchTab('withdrawals')"><i class="fas fa-money-bill-wave" style="width:25px;"></i> Withdrawals</a></li>
+                <li><a href="#" onclick="switchTab('support')"><i class="fas fa-headset" style="width:25px;"></i> Support</a></li>
                 <li><a href="#" onclick="switchTab('settings')"><i class="fas fa-cog" style="width:25px;"></i> Settings</a></li>
                 <li style="margin-top: 30px;"><a href="#" onclick="logout()" style="color: var(--danger);"><i class="fas fa-sign-out-alt" style="width:25px;"></i> Logout</a></li>
             </ul>
@@ -138,6 +139,34 @@
                         </div>
                         <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
                     </form>
+                </div>
+            </div>
+
+            <!-- Support Section -->
+            <div id="tab-support" class="content-section d-none">
+                <div class="glass-panel" style="display: flex; flex-wrap: wrap; height: 75vh; gap: 20px; padding: 20px;">
+                    <!-- User List -->
+                    <div style="flex: 1; min-width: 250px; border-right: 1px solid rgba(0,0,0,0.1); padding-right: 15px; overflow-y: auto;">
+                        <h3 class="mb-3">Users</h3>
+                        <div id="support-users-list" style="display: flex; flex-direction: column; gap: 10px;">
+                            <!-- Users will load here -->
+                        </div>
+                    </div>
+
+                    <!-- Chat Window -->
+                    <div style="flex: 2; min-width: 300px; display: flex; flex-direction: column;">
+                        <h3 class="mb-3" id="active-chat-user">Select a user to chat</h3>
+                        
+                        <div id="admin-chat-messages" style="flex: 1; overflow-y: auto; padding: 15px; border-radius: 12px; background: #f8fafc; border: 1px solid var(--border); margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                            <!-- Messages will load here -->
+                        </div>
+
+                        <form id="adminChatForm" style="display: flex; gap: 10px; display: none; background: var(--bg-card); padding: 10px; border-radius: 50px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                            <input type="hidden" id="active-user-id">
+                            <input type="text" id="admin-chat-input" class="form-control" placeholder="Type your reply..." required style="flex: 1; border: none; background: transparent; padding-left: 15px; box-shadow: none;">
+                            <button type="submit" class="btn btn-primary" style="border-radius: 50px; display: flex; align-items: center; justify-content: center; padding: 10px 20px;"><i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Reply</button>
+                        </form>
+                    </div>
                 </div>
             </div>
 
@@ -282,12 +311,94 @@
             }
         });
 
+        // Support Logic
+        async function loadSupportUsers() {
+            const res = await apiCall('/api/support/users');
+            if(res.error) return;
+            
+            const container = document.getElementById('support-users-list');
+            let html = '';
+            res.forEach(u => {
+                const badge = u.unread_count > 0 ? `<span class="badge" style="background:var(--danger); padding:2px 6px; border-radius:10px; font-size:0.7rem;">${u.unread_count}</span>` : '';
+                html += `
+                    <div class="glass-panel" style="padding: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="loadAdminChat(${u.id}, '${u.name}')">
+                        <div>
+                            <div style="font-weight:bold;">${u.name}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">${u.email}</div>
+                        </div>
+                        ${badge}
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        async function loadAdminChat(userId, userName = null) {
+            if(userName) {
+                document.getElementById('active-chat-user').innerText = `Chat with ${userName}`;
+                document.getElementById('active-user-id').value = userId;
+                document.getElementById('adminChatForm').style.display = 'flex';
+            }
+            
+            const activeId = document.getElementById('active-user-id').value;
+            if(activeId != userId && !userName) return; // If polling and switched user
+            
+            const reqId = userName ? userId : activeId;
+            if(!reqId) return;
+
+            const res = await apiCall(`/api/support/${reqId}`);
+            if(res.error) return;
+
+            const container = document.getElementById('admin-chat-messages');
+            let html = '';
+            res.forEach(msg => {
+                const isAdmin = msg.sender === 'admin';
+                const align = isAdmin ? 'flex-end' : 'flex-start';
+                const bg = isAdmin ? 'linear-gradient(135deg, var(--accent-1), var(--accent-2))' : '#ffffff';
+                const color = isAdmin ? '#fff' : 'var(--text-primary)';
+                const shadow = '0 2px 5px rgba(0,0,0,0.05)';
+                const border = isAdmin ? 'none' : '1px solid var(--border)';
+                const radius = isAdmin ? '15px 15px 0 15px' : '15px 15px 15px 0';
+                
+                html += `
+                    <div style="align-self: ${align}; background: ${bg}; color: ${color}; padding: 12px 18px; border-radius: ${radius}; border: ${border}; box-shadow: ${shadow}; max-width: 80%;">
+                        <div style="font-size: 0.95rem; line-height: 1.4;">${msg.message}</div>
+                        <div style="font-size: 0.7rem; opacity: 0.8; margin-top: 5px; text-align: right;">${new Date(msg.created_at).toLocaleString()}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        document.getElementById('adminChatForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('active-user-id').value;
+            const input = document.getElementById('admin-chat-input');
+            const message = input.value;
+            input.value = '';
+            
+            await apiCall(`/api/support/${userId}`, 'POST', { message });
+            loadAdminChat(userId);
+            loadSupportUsers();
+        });
+
+        // Background polling
+        setInterval(() => {
+            loadAdminData();
+            if(!document.getElementById('tab-support').classList.contains('d-none')) {
+                loadSupportUsers();
+                const activeId = document.getElementById('active-user-id').value;
+                if(activeId) loadAdminChat(activeId);
+            }
+        }, 10000); // 10 seconds
+
         window.addEventListener('load', () => {
             const hash = window.location.hash.replace('#', '');
             if(hash && document.getElementById('tab-' + hash)) {
                 switchTab(hash);
             }
             loadAdminData();
+            loadSupportUsers();
         });
     </script>
 </body>
