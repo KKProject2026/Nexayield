@@ -8,7 +8,7 @@ cron.schedule('* * * * *', async () => {
         const now = new Date();
         
         // Get due investments
-        const dueInvestments = await db.user_investments.findAll({
+        const dueInvestments = await db.USER_INVESTMENTS.findAll({
             where: {
                 status: 'Active',
                 next_profit_time: { [Op.lte]: now }
@@ -18,7 +18,7 @@ cron.schedule('* * * * *', async () => {
         for (let inv of dueInvestments) {
             
             // 1. Give User Daily Profit
-            await db.daily_profits.create({
+            await db.DAILY_PROFITS.create({
                 investment_id: inv.id,
                 amount: inv.daily_profit,
                 status: 'Paid',
@@ -26,12 +26,12 @@ cron.schedule('* * * * *', async () => {
             });
                         
             // 2. Check for Referrer (10% Bonus)
-            const user = await db.users.findByPk(inv.user_id);
+            const user = await db.USERS.findByPk(inv.user_id);
             const referred_by = user ? user.referred_by : null;
             
             if (referred_by) {
                 const refBonus = inv.daily_profit * 0.10; // 10%
-                await db.referral_earnings.create({
+                await db.REFERRAL_EARNINGS.create({
                     referrer_id: referred_by,
                     referred_user_id: inv.user_id,
                     investment_id: inv.id,

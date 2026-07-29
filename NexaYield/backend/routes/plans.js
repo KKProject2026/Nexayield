@@ -5,7 +5,7 @@ const db = require('../config/db');
 // Seed predefined plans if they don't exist
 const seedPlans = async () => {
     try {
-        const cnt = await db.plans.count();
+        const cnt = await db.PLANS.count();
         if (cnt === 0) {
             const initialPlans = [
                 { name: 'Basic', amount: 100, daily_percent: 2, duration_days: 60 },
@@ -17,7 +17,7 @@ const seedPlans = async () => {
             ];
             
             for (let p of initialPlans) {
-                await db.plans.create({
+                await db.PLANS.create({
                     name: p.name,
                     amount: p.amount,
                     daily_percent: p.daily_percent,
@@ -36,7 +36,7 @@ seedPlans();
 // Get Active Plans
 router.get('/', async (req, res) => {
     try {
-        const plans = await db.plans.findAll({
+        const plans = await db.PLANS.findAll({
             where: { status: 'Active' },
             order: [['amount', 'ASC']]
         });

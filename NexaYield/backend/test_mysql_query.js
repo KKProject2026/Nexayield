@@ -8,7 +8,7 @@ async function run() {
         const res = await pool.request()
             .input('name', sql.VarChar, 'TestUser')
             .input('email', sql.VarChar, 'test@test.com')
-            .query("INSERT INTO users (name, email) OUTPUT INSERTED.id VALUES (@name, @email)");
+            .query("INSERT INTO USERS (name, email) OUTPUT INSERTED.id VALUES (@name, @email)");
         
         console.log("Insert result:", res);
         console.log("ID returned:", res.recordset[0].id);
