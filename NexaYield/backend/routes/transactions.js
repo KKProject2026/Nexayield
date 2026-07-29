@@ -8,7 +8,7 @@ const { Op, QueryTypes } = require('sequelize');
 
 // Multer Config
 const storage = multer.diskStorage({
-    destination: './backend/uploads/',
+    destination: path.join(__dirname, '../uploads/'),
     filename: (req, file, cb) => {
         cb(null, 'deposit-' + Date.now() + path.extname(file.originalname));
     }
