@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define('USERS', {
+  const User =  "sequelize.define('" +   const User = sequelize.define('USERS', {.Groups[1].Value.ToLower() + "'" , {
     name: { type: DataTypes.STRING },
     email: { type: DataTypes.STRING, unique: true },
     password: { type: DataTypes.STRING },
@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {
     timestamps: false,
-    tableName: 'USERS'
+     "tableName: '" +     tableName: 'USERS'.Groups[1].Value.ToLower() + "'" 
   });
 
   return User;
