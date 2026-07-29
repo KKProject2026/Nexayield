@@ -1,10 +1,10 @@
 module.exports = (sequelize, DataTypes) => {
-  const Setting = sequelize.define('SETTINGS', {
+  const Setting = sequelize.define('settings', {
     company_wallet: { type: DataTypes.STRING },
     company_qr: { type: DataTypes.STRING }
   }, {
     timestamps: false,
-    tableName: 'SETTINGS'
+    tableName: 'settings'
   });
 
   return Setting;

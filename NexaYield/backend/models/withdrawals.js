@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Withdrawal = sequelize.define('WITHDRAWALS', {
+  const Withdrawal = sequelize.define('withdrawals', {
     user_id: { type: DataTypes.INTEGER },
     amount: { type: DataTypes.DECIMAL(18, 2) },
     wallet_address: { type: DataTypes.STRING },
@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {
     timestamps: false,
-    tableName: 'WITHDRAWALS'
+    tableName: 'withdrawals'
   });
 
   return Withdrawal;

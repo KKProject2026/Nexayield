@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Deposit = sequelize.define('DEPOSITS', {
+  const Deposit = sequelize.define('deposits', {
     user_id: { type: DataTypes.INTEGER },
     amount: { type: DataTypes.DECIMAL(18, 2) },
     tx_hash: { type: DataTypes.STRING },
@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {
     timestamps: false,
-    tableName: 'DEPOSITS'
+    tableName: 'deposits'
   });
 
   return Deposit;
