@@ -105,9 +105,9 @@ router.get('/company-wallet', verifyToken, async (req, res) => {
     try {
         const settings = await db.SETTINGS.findOne();
         if (settings) {
-            res.json({ company_wallet: settings.company_wallet });
+            res.json({ company_wallet: settings.company_wallet, company_qr: settings.company_qr });
         } else {
-            res.json({ company_wallet: 'TFx123ExampleCompanyWallet999' });
+            res.json({ company_wallet: 'TFx123ExampleCompanyWallet999', company_qr: null });
         }
     } catch(err) {
         console.error(err);

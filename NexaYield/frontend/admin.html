@@ -139,6 +139,20 @@
                         </div>
                         <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
                     </form>
+                    
+                    <hr style="margin: 30px 0; border-color: rgba(0,0,0,0.1);">
+                    
+                    <form id="qrForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label>Deposit QR Code Image</label>
+                            <input type="file" id="admin_qr_image" name="qr_image" class="form-control" accept="image/*" required>
+                            <small class="text-muted">This QR code will be shown on the user's deposit page.</small>
+                            <div class="mt-3">
+                                <img id="admin_qr_preview" src="" alt="Current QR Code" style="max-width: 200px; display: none; border-radius: 8px; border: 1px solid var(--border);">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Upload QR Code</button>
+                    </form>
                 </div>
             </div>
 
@@ -218,6 +232,12 @@
             const setRes = await apiCall('/api/admin/settings');
             if(!setRes.error) {
                 document.getElementById('admin_company_wallet').value = setRes.company_wallet || '';
+                
+                if (setRes.company_qr) {
+                    const qrPreview = document.getElementById('admin_qr_preview');
+                    qrPreview.src = setRes.company_qr;
+                    qrPreview.style.display = 'block';
+                }
             }
 
             // Load Users
@@ -308,6 +328,39 @@
             else {
                 alert(res.message);
                 loadAdminData();
+            }
+        });
+
+        document.getElementById('admin_qr_image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('admin_qr_preview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('qrForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            try {
+                const response = await fetch('/api/admin/settings/qr', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+                    body: formData
+                });
+                const res = await response.json();
+                if(res.error) alert(res.error);
+                else {
+                    alert(res.message);
+                    loadAdminData();
+                }
+            } catch (err) {
+                alert('Error uploading QR code');
             }
         });
 

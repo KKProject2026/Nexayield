@@ -3,6 +3,24 @@ const router = express.Router();
 const db = require('../config/db');
 const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
 const { Op, QueryTypes } = require('sequelize');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configure multer for QR code uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = path.join(__dirname, '../uploads');
+        if (!fs.existsSync(dir)){
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        cb(null, 'qr_' + Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
 
 // Admin Dashboard Stats
 router.get('/dashboard', verifyToken, isAdmin, async (req, res) => {
@@ -209,6 +227,29 @@ router.post('/settings', verifyToken, isAdmin, async (req, res) => {
         }
         res.json({ message: "Settings updated successfully" });
     } catch (err) {
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// Upload Settings QR
+router.post('/settings/qr', verifyToken, isAdmin, upload.single('qr_image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: "No file uploaded" });
+        }
+        
+        const filePath = '/uploads/' + req.file.filename;
+        const setting = await db.SETTINGS.findOne();
+        
+        if (setting) {
+            await setting.update({ company_qr: filePath });
+        } else {
+            await db.SETTINGS.create({ company_qr: filePath });
+        }
+        
+        res.json({ message: "QR Code uploaded successfully", company_qr: filePath });
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ error: "Server error" });
     }
 });

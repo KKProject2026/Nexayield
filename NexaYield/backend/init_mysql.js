@@ -43,7 +43,8 @@ async function initDb() {
             )`,
             `CREATE TABLE IF NOT EXISTS SETTINGS (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                company_wallet VARCHAR(255)
+                company_wallet VARCHAR(255),
+                company_qr VARCHAR(255)
             )`,
             `CREATE TABLE IF NOT EXISTS PLANS (
                 id INT AUTO_INCREMENT PRIMARY KEY,
