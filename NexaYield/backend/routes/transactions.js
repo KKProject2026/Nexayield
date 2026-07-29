@@ -19,13 +19,13 @@ const upload = multer({ storage });
 router.get('/history', verifyToken, async (req, res) => {
     if (req.userRole !== 'user') return res.status(403).json({ error: "Only users" });
     try {
-        const deposits = await db.DEPOSITS.findAll({
+        const deposits = await db.deposits.findAll({
             where: { user_id: req.userId },
             attributes: ['amount', 'status', 'created_at'],
             order: [['created_at', 'DESC']]
         });
             
-        const withdrawals = await db.WITHDRAWALS.findAll({
+        const withdrawals = await db.withdrawals.findAll({
             where: { user_id: req.userId },
             attributes: ['amount', 'status', 'created_at'],
             order: [['created_at', 'DESC']]
@@ -47,10 +47,10 @@ router.post('/deposit', verifyToken, upload.single('screenshot'), async (req, re
     if (!screenshot || !tx_hash) return res.status(400).json({ error: "Screenshot and TX Hash are required" });
 
     try {
-        const plan = await db.PLANS.findByPk(plan_id);
+        const plan = await db.plans.findByPk(plan_id);
         if (!plan) return res.status(400).json({ error: "Invalid Plan" });
 
-        await db.DEPOSITS.create({
+        await db.deposits.create({
             user_id: req.userId,
             amount: amount,
             tx_hash: tx_hash,
@@ -75,26 +75,26 @@ router.post('/withdraw', verifyToken, async (req, res) => {
 
     try {
         // Update user wallet
-        await db.USERS.update({ wallet_address }, { where: { id: req.userId } });
+        await db.users.update({ wallet_address }, { where: { id: req.userId } });
 
         // Calculate Balance
         const dpRes = await db.sequelize.query(`
             SELECT IFNULL(SUM(dp.amount), 0) as amt 
-            FROM DAILY_PROFITS dp 
-            JOIN USER_INVESTMENTS ui ON dp.investment_id = ui.id 
+            FROM daily_profits dp 
+            JOIN user_investments ui ON dp.investment_id = ui.id 
             WHERE ui.user_id = :userId AND dp.status = 'Paid'
         `, { replacements: { userId: req.userId }, type: QueryTypes.SELECT });
         const totalDailyProfit = parseFloat(dpRes[0].amt) || 0;
         
-        const totalReferralIncome = await db.REFERRAL_EARNINGS.sum('profit_amount', { where: { referrer_id: req.userId, status: 'Paid' } }) || 0;
-        const totalWithdrawn = await db.WITHDRAWALS.sum('amount', { where: { user_id: req.userId, status: { [Op.ne]: 'Rejected' } } }) || 0;
-        const totalMilestoneRewards = await db.MILESTONE_REWARDS.sum('reward_amount', { where: { user_id: req.userId } }) || 0;
+        const totalReferralIncome = await db.referral_earnings.sum('profit_amount', { where: { referrer_id: req.userId, status: 'Paid' } }) || 0;
+        const totalWithdrawn = await db.withdrawals.sum('amount', { where: { user_id: req.userId, status: { [Op.ne]: 'Rejected' } } }) || 0;
+        const totalMilestoneRewards = await db.milestone_rewards.sum('reward_amount', { where: { user_id: req.userId } }) || 0;
 
         const balance = (totalDailyProfit + totalReferralIncome + totalMilestoneRewards) - totalWithdrawn;
 
         if (amount > balance) return res.status(400).json({ error: "Insufficient balance" });
 
-        await db.WITHDRAWALS.create({
+        await db.withdrawals.create({
             user_id: req.userId,
             amount: amount,
             wallet_address: wallet_address,

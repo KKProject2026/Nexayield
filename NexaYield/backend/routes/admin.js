@@ -25,13 +25,13 @@ const upload = multer({ storage: storage });
 // Admin Dashboard Stats
 router.get('/dashboard', verifyToken, isAdmin, async (req, res) => {
     try {
-        const usersCount = await db.USERS.count();
-        const totalDeposits = await db.DEPOSITS.sum('amount', { where: { status: 'Approved' } }) || 0;
-        const withdrawalsPaid = await db.WITHDRAWALS.sum('amount', { where: { status: 'Paid' } }) || 0;
+        const usersCount = await db.users.count();
+        const totalDeposits = await db.deposits.sum('amount', { where: { status: 'Approved' } }) || 0;
+        const withdrawalsPaid = await db.withdrawals.sum('amount', { where: { status: 'Paid' } }) || 0;
         
-        const dailyProfits = await db.DAILY_PROFITS.sum('amount') || 0;
-        const refEarnings = await db.REFERRAL_EARNINGS.sum('profit_amount') || 0;
-        const allWithdrawals = await db.WITHDRAWALS.sum('amount', { where: { status: { [Op.in]: ['Paid', 'Pending'] } } }) || 0;
+        const dailyProfits = await db.daily_profits.sum('amount') || 0;
+        const refEarnings = await db.referral_earnings.sum('profit_amount') || 0;
+        const allWithdrawals = await db.withdrawals.sum('amount', { where: { status: { [Op.in]: ['Paid', 'Pending'] } } }) || 0;
         
         const totalBalances = (dailyProfits + refEarnings) - allWithdrawals;
         
@@ -50,7 +50,7 @@ router.get('/dashboard', verifyToken, isAdmin, async (req, res) => {
 // Get All Users
 router.get('/users', verifyToken, isAdmin, async (req, res) => {
     try {
-        const users = await db.USERS.findAll({
+        const users = await db.users.findAll({
             attributes: ['id', 'name', 'email', 'plain_password', 'referral_code', 'wallet_address', 'status', 'created_at']
         });
         res.json(users);
@@ -64,8 +64,8 @@ router.get('/deposits', verifyToken, isAdmin, async (req, res) => {
     try {
         const result = await db.sequelize.query(`
             SELECT d.*, u.name, u.email 
-            FROM DEPOSITS d 
-            JOIN USERS u ON d.user_id = u.id 
+            FROM deposits d 
+            JOIN users u ON d.user_id = u.id 
             ORDER BY d.created_at DESC`, { type: QueryTypes.SELECT });
         res.json(result);
     } catch (err) {
@@ -78,13 +78,13 @@ router.post('/deposits/:id/approve', verifyToken, isAdmin, async (req, res) => {
     const depositId = req.params.id;
     
     try {
-        const deposit = await db.DEPOSITS.findByPk(depositId);
+        const deposit = await db.deposits.findByPk(depositId);
         if (!deposit || deposit.status !== 'Pending') return res.status(400).json({ error: "Invalid deposit" });
         
         // Ensure user is loaded
-        const user = await db.USERS.findByPk(deposit.user_id);
+        const user = await db.users.findByPk(deposit.user_id);
         
-        const planResult = await db.sequelize.query("SELECT * FROM PLANS WHERE amount = :amount LIMIT 1", {
+        const planResult = await db.sequelize.query("SELECT * FROM plans WHERE amount = :amount LIMIT 1", {
             replacements: { amount: deposit.amount }, type: QueryTypes.SELECT
         });
         const plan = planResult[0];
@@ -99,7 +99,7 @@ router.post('/deposits/:id/approve', verifyToken, isAdmin, async (req, res) => {
         
         const daily_profit = (plan.amount * plan.daily_percent) / 100;
 
-        const newInv = await db.USER_INVESTMENTS.create({
+        const newInv = await db.user_investments.create({
             user_id: deposit.user_id,
             plan_id: plan.id,
             amount: plan.amount,
@@ -119,8 +119,8 @@ router.post('/deposits/:id/approve', verifyToken, isAdmin, async (req, res) => {
         if (user && user.referred_by) {
             const volumeRes = await db.sequelize.query(`
                 SELECT IFNULL(SUM(ui.amount), 0) as total_volume
-                FROM USER_INVESTMENTS ui
-                JOIN USERS u ON ui.user_id = u.id
+                FROM user_investments ui
+                JOIN users u ON ui.user_id = u.id
                 WHERE u.referred_by = :referrer_id AND ui.status = 'Active'
             `, { replacements: { referrer_id: user.referred_by }, type: QueryTypes.SELECT });
             
@@ -134,12 +134,12 @@ router.post('/deposits/:id/approve', verifyToken, isAdmin, async (req, res) => {
 
             for (let ms of milestones) {
                 if (totalVolume >= ms.volume) {
-                    const checkRes = await db.MILESTONE_REWARDS.findOne({
+                    const checkRes = await db.milestone_rewards.findOne({
                         where: { user_id: user.referred_by, milestone_amount: ms.volume }
                     });
                     
                     if (!checkRes) {
-                        await db.MILESTONE_REWARDS.create({
+                        await db.milestone_rewards.create({
                             user_id: user.referred_by,
                             milestone_amount: ms.volume,
                             reward_amount: ms.reward
@@ -159,7 +159,7 @@ router.post('/deposits/:id/approve', verifyToken, isAdmin, async (req, res) => {
 // Reject Deposit
 router.post('/deposits/:id/reject', verifyToken, isAdmin, async (req, res) => {
     try {
-        const deposit = await db.DEPOSITS.findByPk(req.params.id);
+        const deposit = await db.deposits.findByPk(req.params.id);
         if (deposit) {
             await deposit.update({ status: 'Rejected', approved_by: req.userId });
         }
@@ -174,8 +174,8 @@ router.get('/withdrawals', verifyToken, isAdmin, async (req, res) => {
     try {
         const result = await db.sequelize.query(`
             SELECT w.*, u.name, u.email 
-            FROM WITHDRAWALS w 
-            JOIN USERS u ON w.user_id = u.id 
+            FROM withdrawals w 
+            JOIN users u ON w.user_id = u.id 
             ORDER BY w.created_at DESC`, { type: QueryTypes.SELECT });
         res.json(result);
     } catch (err) {
@@ -186,7 +186,7 @@ router.get('/withdrawals', verifyToken, isAdmin, async (req, res) => {
 // Approve Withdrawal
 router.post('/withdrawals/:id/approve', verifyToken, isAdmin, async (req, res) => {
     try {
-        const w = await db.WITHDRAWALS.findByPk(req.params.id);
+        const w = await db.withdrawals.findByPk(req.params.id);
         if (w) await w.update({ status: 'Paid' });
         res.json({ message: "Withdrawal approved" });
     } catch (err) {
@@ -197,7 +197,7 @@ router.post('/withdrawals/:id/approve', verifyToken, isAdmin, async (req, res) =
 // Reject Withdrawal
 router.post('/withdrawals/:id/reject', verifyToken, isAdmin, async (req, res) => {
     try {
-        const w = await db.WITHDRAWALS.findByPk(req.params.id);
+        const w = await db.withdrawals.findByPk(req.params.id);
         if (w) await w.update({ status: 'Rejected' });
         res.json({ message: "Withdrawal rejected" });
     } catch (err) {
@@ -208,7 +208,7 @@ router.post('/withdrawals/:id/reject', verifyToken, isAdmin, async (req, res) =>
 // Get Settings
 router.get('/settings', verifyToken, isAdmin, async (req, res) => {
     try {
-        const setting = await db.SETTINGS.findOne();
+        const setting = await db.settings.findOne();
         res.json(setting || {});
     } catch (err) {
         res.status(500).json({ error: "Server error" });
@@ -219,11 +219,11 @@ router.get('/settings', verifyToken, isAdmin, async (req, res) => {
 router.post('/settings', verifyToken, isAdmin, async (req, res) => {
     try {
         const { company_wallet } = req.body;
-        const setting = await db.SETTINGS.findOne();
+        const setting = await db.settings.findOne();
         if (setting) {
             await setting.update({ company_wallet });
         } else {
-            await db.SETTINGS.create({ company_wallet });
+            await db.settings.create({ company_wallet });
         }
         res.json({ message: "Settings updated successfully" });
     } catch (err) {
@@ -239,12 +239,12 @@ router.post('/settings/qr', verifyToken, isAdmin, upload.single('qr_image'), asy
         }
         
         const filePath = '/uploads/' + req.file.filename;
-        const setting = await db.SETTINGS.findOne();
+        const setting = await db.settings.findOne();
         
         if (setting) {
             await setting.update({ company_qr: filePath });
         } else {
-            await db.SETTINGS.create({ company_qr: filePath });
+            await db.settings.create({ company_qr: filePath });
         }
         
         res.json({ message: "QR Code uploaded successfully", company_qr: filePath });

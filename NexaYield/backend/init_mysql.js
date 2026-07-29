@@ -23,14 +23,14 @@ async function initDb() {
         await connection.changeUser({ database: dbName });
 
         const tables = [
-            `CREATE TABLE IF NOT EXISTS ADMINS (
+            `CREATE TABLE IF NOT EXISTS admins (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255),
                 email VARCHAR(255) UNIQUE,
                 password VARCHAR(255),
                 role VARCHAR(50) DEFAULT 'admin'
             )`,
-            `CREATE TABLE IF NOT EXISTS USERS (
+            `CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255),
                 email VARCHAR(255) UNIQUE,
@@ -42,12 +42,12 @@ async function initDb() {
                 status VARCHAR(50) DEFAULT 'Active',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`,
-            `CREATE TABLE IF NOT EXISTS SETTINGS (
+            `CREATE TABLE IF NOT EXISTS settings (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 company_wallet VARCHAR(255),
                 company_qr VARCHAR(255)
             )`,
-            `CREATE TABLE IF NOT EXISTS PLANS (
+            `CREATE TABLE IF NOT EXISTS plans (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255),
                 amount DECIMAL(18,2),
@@ -56,7 +56,7 @@ async function initDb() {
                 status VARCHAR(50) DEFAULT 'Active',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`,
-            `CREATE TABLE IF NOT EXISTS DEPOSITS (
+            `CREATE TABLE IF NOT EXISTS deposits (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 amount DECIMAL(18,2),
@@ -67,7 +67,7 @@ async function initDb() {
                 approved_by INT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`,
-            `CREATE TABLE IF NOT EXISTS USER_INVESTMENTS (
+            `CREATE TABLE IF NOT EXISTS user_investments (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 plan_id INT,
@@ -81,14 +81,14 @@ async function initDb() {
                 status VARCHAR(50) DEFAULT 'Active',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`,
-            `CREATE TABLE IF NOT EXISTS DAILY_PROFITS (
+            `CREATE TABLE IF NOT EXISTS daily_profits (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 investment_id INT,
                 amount DECIMAL(18,2),
                 status VARCHAR(50) DEFAULT 'Paid',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`,
-            `CREATE TABLE IF NOT EXISTS WITHDRAWALS (
+            `CREATE TABLE IF NOT EXISTS withdrawals (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 amount DECIMAL(18,2),
@@ -96,7 +96,7 @@ async function initDb() {
                 status VARCHAR(50) DEFAULT 'Pending',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`,
-            `CREATE TABLE IF NOT EXISTS REFERRAL_EARNINGS (
+            `CREATE TABLE IF NOT EXISTS referral_earnings (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 referrer_id INT,
                 referred_user_id INT,
@@ -105,7 +105,7 @@ async function initDb() {
                 status VARCHAR(50) DEFAULT 'Paid',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`,
-            `CREATE TABLE IF NOT EXISTS MILESTONE_REWARDS (
+            `CREATE TABLE IF NOT EXISTS milestone_rewards (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 milestone_amount DECIMAL(18,2),
@@ -129,12 +129,12 @@ async function initDb() {
         console.log("All tables created successfully!");
 
         // Insert initial Settings and Plans if empty
-        const [settings] = await connection.query("SELECT * FROM SETTINGS");
+        const [settings] = await connection.query("SELECT * FROM settings");
         if (settings.length === 0) {
-            await connection.query("INSERT INTO SETTINGS (company_wallet) VALUES ('0xDefaultCompanyWalletAddress')");
+            await connection.query("INSERT INTO settings (company_wallet) VALUES ('0xDefaultCompanyWalletAddress')");
         }
 
-        const [plans] = await connection.query("SELECT * FROM PLANS");
+        const [plans] = await connection.query("SELECT * FROM plans");
         if (plans.length === 0) {
             const initialPlans = [
                 { name: 'Basic', amount: 100, daily: 2, duration: 60 },
@@ -145,7 +145,7 @@ async function initDb() {
                 { name: 'VIP', amount: 5000, daily: 3, duration: 60 }
             ];
             for (let p of initialPlans) {
-                await connection.query("INSERT INTO PLANS (name, amount, daily_percent, duration_days) VALUES (?, ?, ?, ?)", [p.name, p.amount, p.daily, p.duration]);
+                await connection.query("INSERT INTO plans (name, amount, daily_percent, duration_days) VALUES (?, ?, ?, ?)", [p.name, p.amount, p.daily, p.duration]);
             }
             console.log("Default plans seeded.");
         }

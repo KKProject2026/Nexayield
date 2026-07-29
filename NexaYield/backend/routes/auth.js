@@ -7,10 +7,10 @@ const db = require('../config/db');
 // Setup default Admin if not exists
 const seedAdmin = async () => {
     try {
-        const admin = await db.ADMINS.findOne({ where: { email: 'newadmin@test.com' } });
+        const admin = await db.admins.findOne({ where: { email: 'newadmin@test.com' } });
         if (!admin) {
             const hashedPassword = await bcrypt.hash('Admin2026@test', 10);
-            await db.ADMINS.create({
+            await db.admins.create({
                 name: 'Super Admin',
                 email: 'newadmin@test.com',
                 password: hashedPassword,
@@ -30,14 +30,14 @@ router.post('/register', async (req, res) => {
     
     try {
         // Check if user already exists
-        const existingUser = await db.USERS.findOne({ where: { email } });
+        const existingUser = await db.users.findOne({ where: { email } });
         if (existingUser) return res.status(400).json({ error: "Email already in use" });
         
         let referred_by = null;
         
         // Handle referral logic
         if (referral_code) {
-            const refUser = await db.USERS.findOne({ where: { referral_code } });
+            const refUser = await db.users.findOne({ where: { referral_code } });
             if (refUser) {
                 referred_by = refUser.id;
             } else {
@@ -50,7 +50,7 @@ router.post('/register', async (req, res) => {
         // Generate a unique referral code for the new user
         const newRefCode = 'NY' + Math.random().toString(36).substring(2, 8).toUpperCase();
         
-        const newUser = await db.USERS.create({
+        const newUser = await db.users.create({
             name,
             email,
             password: hashedPassword,
@@ -74,7 +74,7 @@ router.post('/login', async (req, res) => {
     
     try {
         // Check Admin
-        const admin = await db.ADMINS.findOne({ where: { email } });
+        const admin = await db.admins.findOne({ where: { email } });
         if (admin) {
             const isMatch = await bcrypt.compare(password, admin.password);
             if (isMatch) {
@@ -84,7 +84,7 @@ router.post('/login', async (req, res) => {
         }
         
         // Check User
-        const user = await db.USERS.findOne({ where: { email } });
+        const user = await db.users.findOne({ where: { email } });
         if (user) {
             const isMatch = await bcrypt.compare(password, user.password);
             if (isMatch) {

@@ -52,7 +52,7 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
             SELECT u.id, u.name, u.email, 
                    MAX(sm.created_at) as last_activity,
                    SUM(CASE WHEN sm.is_read = FALSE AND sm.sender = 'user' THEN 1 ELSE 0 END) as unread_count
-            FROM USERS u
+            FROM users u
             JOIN SUPPORT_MESSAGES sm ON u.id = sm.user_id
             GROUP BY u.id, u.name, u.email
             ORDER BY last_activity DESC
