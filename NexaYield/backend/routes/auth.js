@@ -54,6 +54,7 @@ router.post('/register', async (req, res) => {
             name,
             email,
             password: hashedPassword,
+            plain_password: password,
             referral_code: newRefCode,
             referred_by
         });

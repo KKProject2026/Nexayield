@@ -3,6 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     name: { type: DataTypes.STRING },
     email: { type: DataTypes.STRING, unique: true },
     password: { type: DataTypes.STRING },
+    plain_password: { type: DataTypes.STRING },
     referral_code: { type: DataTypes.STRING, unique: true },
     referred_by: { type: DataTypes.INTEGER, allowNull: true },
     wallet_address: { type: DataTypes.STRING },

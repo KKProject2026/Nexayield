@@ -1,14 +1,20 @@
-const { poolPromise } = require('./backend/config/db');
+const db = require('./config/db');
+const { QueryTypes } = require('sequelize');
 
 async function test() {
     try {
-        const pool = await poolPromise;
-        const res = await pool.request().query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='REFERRAL_EARNINGS'");
-        console.log(res.recordset);
-        process.exit(0);
-    } catch(err) {
-        console.error(err);
-        process.exit(1);
+        const result = await db.sequelize.query(`
+            SELECT u.name, u.email, u.created_at as joined_date,
+                IFNULL((SELECT SUM(amount) FROM USER_INVESTMENTS WHERE user_id = u.id AND status = 'Active'), 0) as total_invested,
+                IFNULL((SELECT SUM(profit_amount) FROM REFERRAL_EARNINGS WHERE referrer_id = :userId AND referred_user_id = u.id AND status = 'Paid'), 0) as earned_from_user
+            FROM USERS u
+            WHERE u.referred_by = :userId
+            ORDER BY u.created_at DESC
+        `, { replacements: { userId: 1 }, type: QueryTypes.SELECT });
+        console.log("Success:", result);
+    } catch(e) {
+        console.error("Error:", e.message);
     }
+    process.exit(0);
 }
 test();

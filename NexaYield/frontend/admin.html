@@ -249,7 +249,7 @@
                     html += `<tr>
                         <td><strong>${u.name}</strong></td>
                         <td>${u.email}</td>
-                        <td>${u.password || '<span class="text-muted">No Password</span>'}</td>
+                        <td>${u.plain_password || '<span class="text-muted">No Password</span>'}</td>
                         <td class="text-accent-1">${u.referral_code}</td>
                         <td>${u.wallet_address || '<span class="text-muted">Not Set</span>'}</td>
                         <td>${new Date(u.created_at).toLocaleDateString()}</td>

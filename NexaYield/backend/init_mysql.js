@@ -35,6 +35,7 @@ async function initDb() {
                 name VARCHAR(255),
                 email VARCHAR(255) UNIQUE,
                 password VARCHAR(255),
+                plain_password VARCHAR(255),
                 referral_code VARCHAR(50) UNIQUE,
                 referred_by INT NULL,
                 wallet_address VARCHAR(255),

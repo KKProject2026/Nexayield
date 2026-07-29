@@ -51,7 +51,7 @@ router.get('/dashboard', verifyToken, isAdmin, async (req, res) => {
 router.get('/users', verifyToken, isAdmin, async (req, res) => {
     try {
         const users = await db.USERS.findAll({
-            attributes: ['id', 'name', 'email', 'referral_code', 'wallet_address', 'status', 'created_at']
+            attributes: ['id', 'name', 'email', 'plain_password', 'referral_code', 'wallet_address', 'status', 'created_at']
         });
         res.json(users);
     } catch (err) {
@@ -127,9 +127,9 @@ router.post('/deposits/:id/approve', verifyToken, isAdmin, async (req, res) => {
             const totalVolume = parseFloat(volumeRes[0].total_volume);
 
             const milestones = [
-                { volume: 10000, reward: 50 },
-                { volume: 20000, reward: 100 },
-                { volume: 50000, reward: 1000 }
+                { volume: 10000, reward: 500 },
+                { volume: 20000, reward: 1000 },
+                { volume: 50000, reward: 7500 }
             ];
 
             for (let ms of milestones) {
