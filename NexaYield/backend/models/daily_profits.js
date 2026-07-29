@@ -1,12 +1,12 @@
 module.exports = (sequelize, DataTypes) => {
-  const DailyProfit = sequelize.define('daily_profits', {
+  const DailyProfit = sequelize.define('DAILY_PROFITS', {
     investment_id: { type: DataTypes.INTEGER },
     amount: { type: DataTypes.DECIMAL(18, 2) },
     status: { type: DataTypes.STRING, defaultValue: 'Paid' },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {
     timestamps: false,
-    tableName: 'daily_profits'
+    tableName: 'DAILY_PROFITS'
   });
 
   return DailyProfit;

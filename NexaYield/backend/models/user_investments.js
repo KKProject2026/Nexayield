@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const UserInvestment = sequelize.define('user_investments', {
+  const UserInvestment = sequelize.define('USER_INVESTMENTS', {
     user_id: { type: DataTypes.INTEGER },
     plan_id: { type: DataTypes.INTEGER },
     amount: { type: DataTypes.DECIMAL(18, 2) },
@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     status: { type: DataTypes.STRING, defaultValue: 'Active' }
   }, {
     timestamps: false,
-    tableName: 'user_investments'
+    tableName: 'USER_INVESTMENTS'
   });
 
   return UserInvestment;
