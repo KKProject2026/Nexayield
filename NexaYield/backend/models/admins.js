@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Admin =  "sequelize.define('" +   const Admin = sequelize.define('ADMINS', {.Groups[1].Value.ToLower() + "'" , {
+  const Admin = sequelize.define('ADMINS', {
     name: {
       type: DataTypes.STRING,
       allowNull: true
@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     timestamps: false,
-     "tableName: '" +     tableName: 'ADMINS'.Groups[1].Value.ToLower() + "'" 
+    tableName: 'ADMINS'
   });
 
   return Admin;

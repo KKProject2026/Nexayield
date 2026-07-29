@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Plan =  "sequelize.define('" +   const Plan = sequelize.define('PLANS', {.Groups[1].Value.ToLower() + "'" , {
+  const Plan = sequelize.define('PLANS', {
     name: { type: DataTypes.STRING },
     amount: { type: DataTypes.DECIMAL(18, 2) },
     daily_percent: { type: DataTypes.DECIMAL(5, 2) },
@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {
     timestamps: false,
-     "tableName: '" +     tableName: 'PLANS'.Groups[1].Value.ToLower() + "'" 
+    tableName: 'PLANS'
   });
 
   return Plan;

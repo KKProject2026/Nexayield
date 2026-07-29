@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Deposit =  "sequelize.define('" +   const Deposit = sequelize.define('DEPOSITS', {.Groups[1].Value.ToLower() + "'" , {
+  const Deposit = sequelize.define('DEPOSITS', {
     user_id: { type: DataTypes.INTEGER },
     amount: { type: DataTypes.DECIMAL(18, 2) },
     tx_hash: { type: DataTypes.STRING },
@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {
     timestamps: false,
-     "tableName: '" +     tableName: 'DEPOSITS'.Groups[1].Value.ToLower() + "'" 
+    tableName: 'DEPOSITS'
   });
 
   return Deposit;

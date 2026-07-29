@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const ReferralEarning =  "sequelize.define('" +   const ReferralEarning = sequelize.define('REFERRAL_EARNINGS', {.Groups[1].Value.ToLower() + "'" , {
+  const ReferralEarning = sequelize.define('REFERRAL_EARNINGS', {
     referrer_id: { type: DataTypes.INTEGER },
     referred_user_id: { type: DataTypes.INTEGER },
     investment_id: { type: DataTypes.INTEGER },
@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {
     timestamps: false,
-     "tableName: '" +     tableName: 'REFERRAL_EARNINGS'.Groups[1].Value.ToLower() + "'" 
+    tableName: 'REFERRAL_EARNINGS'
   });
 
   return ReferralEarning;
