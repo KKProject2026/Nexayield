@@ -80,8 +80,8 @@ router.post('/withdraw', verifyToken, async (req, res) => {
         // Calculate Balance
         const dpRes = await db.sequelize.query(`
             SELECT IFNULL(SUM(dp.amount), 0) as amt 
-            FROM DAILY_PROFITS dp 
-            JOIN USER_INVESTMENTS ui ON dp.investment_id = ui.id 
+            FROM \`daily_profits\` dp 
+            JOIN \`user_investments\` ui ON dp.investment_id = ui.id 
             WHERE ui.user_id = :userId AND dp.status = 'Paid'
         `, { replacements: { userId: req.userId }, type: QueryTypes.SELECT });
         const totalDailyProfit = parseFloat(dpRes[0].amt) || 0;

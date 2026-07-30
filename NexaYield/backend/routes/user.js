@@ -16,8 +16,8 @@ router.get('/dashboard', verifyToken, async (req, res) => {
 
         const dailyProfitResult = await db.sequelize.query(`
             SELECT IFNULL(SUM(dp.amount), 0) as total_dp 
-            FROM DAILY_PROFITS dp
-            JOIN USER_INVESTMENTS ui ON dp.investment_id = ui.id
+            FROM \`daily_profits\` dp
+            JOIN \`user_investments\` ui ON dp.investment_id = ui.id
             WHERE ui.user_id = :userId AND dp.status = 'Paid'
         `, { replacements: { userId }, type: QueryTypes.SELECT });
         const totalDailyProfit = parseFloat(dailyProfitResult[0].total_dp) || 0;
@@ -67,17 +67,17 @@ router.get('/my-investments', verifyToken, async (req, res) => {
     try {
         const result = await db.sequelize.query(`
             SELECT i.*, p.name as plan_name, p.amount as plan_amount,
-            IFNULL((SELECT SUM(amount) FROM DAILY_PROFITS WHERE investment_id = i.id), 0) as total_earned
-            FROM USER_INVESTMENTS i
-            JOIN PLANS p ON i.plan_id = p.id
+            IFNULL((SELECT SUM(amount) FROM \`daily_profits\` WHERE investment_id = i.id), 0) as total_earned
+            FROM \`user_investments\` i
+            JOIN \`plans\` p ON i.plan_id = p.id
             WHERE i.user_id = :userId
-            ORDER BY i.created_at DESC
+            ORDER BY i.start_date DESC
         `, { replacements: { userId: req.userId }, type: QueryTypes.SELECT });
             
         res.json(result);
     } catch(err) {
         console.error(err);
-        res.status(500).json({error: "Server error"});
+        res.status(500).json({error: err.message || "Server error"});
     }
 });
 
@@ -86,9 +86,9 @@ router.get('/my-referrals', verifyToken, async (req, res) => {
     try {
         const result = await db.sequelize.query(`
             SELECT u.name, u.email, u.created_at as joined_date,
-                IFNULL((SELECT SUM(amount) FROM USER_INVESTMENTS WHERE user_id = u.id AND status = 'Active'), 0) as total_invested,
-                IFNULL((SELECT SUM(profit_amount) FROM REFERRAL_EARNINGS WHERE referrer_id = :userId AND referred_user_id = u.id AND status = 'Paid'), 0) as earned_from_user
-            FROM USERS u
+                IFNULL((SELECT SUM(amount) FROM \`user_investments\` WHERE user_id = u.id AND status = 'Active'), 0) as total_invested,
+                IFNULL((SELECT SUM(profit_amount) FROM \`referral_earnings\` WHERE referrer_id = :userId AND referred_user_id = u.id AND status = 'Paid'), 0) as earned_from_user
+            FROM \`users\` u
             WHERE u.referred_by = :userId
             ORDER BY u.created_at DESC
         `, { replacements: { userId: req.userId }, type: QueryTypes.SELECT });
@@ -96,7 +96,7 @@ router.get('/my-referrals', verifyToken, async (req, res) => {
         res.json(result);
     } catch(err) {
         console.error(err);
-        res.status(500).json({error: "Server error"});
+        res.status(500).json({error: err.message || "Server error"});
     }
 });
 

@@ -64,8 +64,8 @@ router.get('/deposits', verifyToken, isAdmin, async (req, res) => {
     try {
         const result = await db.sequelize.query(`
             SELECT d.*, u.name, u.email 
-            FROM DEPOSITS d 
-            JOIN USERS u ON d.user_id = u.id 
+            FROM \`deposits\` d 
+            JOIN \`users\` u ON d.user_id = u.id 
             ORDER BY d.created_at DESC`, { type: QueryTypes.SELECT });
         res.json(result);
     } catch (err) {
@@ -84,7 +84,7 @@ router.post('/deposits/:id/approve', verifyToken, isAdmin, async (req, res) => {
         // Ensure user is loaded
         const user = await db.USERS.findByPk(deposit.user_id);
         
-        const planResult = await db.sequelize.query("SELECT * FROM PLANS WHERE amount = :amount LIMIT 1", {
+        const planResult = await db.sequelize.query("SELECT * FROM \`plans\` WHERE amount = :amount LIMIT 1", {
             replacements: { amount: deposit.amount }, type: QueryTypes.SELECT
         });
         const plan = planResult[0];
@@ -119,8 +119,8 @@ router.post('/deposits/:id/approve', verifyToken, isAdmin, async (req, res) => {
         if (user && user.referred_by) {
             const volumeRes = await db.sequelize.query(`
                 SELECT IFNULL(SUM(ui.amount), 0) as total_volume
-                FROM USER_INVESTMENTS ui
-                JOIN USERS u ON ui.user_id = u.id
+                FROM \`user_investments\` ui
+                JOIN \`users\` u ON ui.user_id = u.id
                 WHERE u.referred_by = :referrer_id AND ui.status = 'Active'
             `, { replacements: { referrer_id: user.referred_by }, type: QueryTypes.SELECT });
             
@@ -174,8 +174,8 @@ router.get('/withdrawals', verifyToken, isAdmin, async (req, res) => {
     try {
         const result = await db.sequelize.query(`
             SELECT w.*, u.name, u.email 
-            FROM WITHDRAWALS w 
-            JOIN USERS u ON w.user_id = u.id 
+            FROM \`withdrawals\` w 
+            JOIN \`users\` u ON w.user_id = u.id 
             ORDER BY w.created_at DESC`, { type: QueryTypes.SELECT });
         res.json(result);
     } catch (err) {

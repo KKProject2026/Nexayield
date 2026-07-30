@@ -34,14 +34,14 @@ router.post('/', verifyToken, async (req, res) => {
     
     try {
         await db.sequelize.query(`
-            INSERT INTO SUPPORT_MESSAGES (user_id, sender, message) 
-            VALUES (:userId, 'user', :message)
+            INSERT INTO \`support_messages\` (\`user_id\`, \`sender\`, \`message\`, \`is_read\`, \`created_at\`) 
+            VALUES (:userId, 'user', :message, 0, NOW())
         `, { replacements: { userId: req.userId, message }, type: QueryTypes.INSERT });
         
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Server error" });
+        console.error("Chat Error:", err);
+        res.status(500).json({ error: err.message || "Server error" });
     }
 });
 
@@ -95,14 +95,14 @@ router.post('/:userId', verifyToken, isAdmin, async (req, res) => {
     
     try {
         await db.sequelize.query(`
-            INSERT INTO SUPPORT_MESSAGES (user_id, sender, message) 
-            VALUES (:userId, 'admin', :message)
+            INSERT INTO \`support_messages\` (\`user_id\`, \`sender\`, \`message\`, \`is_read\`, \`created_at\`) 
+            VALUES (:userId, 'admin', :message, 0, NOW())
         `, { replacements: { userId: req.params.userId, message }, type: QueryTypes.INSERT });
         
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Server error" });
+        console.error("Admin Chat Error:", err);
+        res.status(500).json({ error: err.message || "Server error" });
     }
 });
 
