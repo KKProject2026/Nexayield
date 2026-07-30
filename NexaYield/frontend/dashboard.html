@@ -75,9 +75,10 @@
                         <p class="text-muted mb-4">Share your code to earn <strong>10% of their daily profit</strong> automatically!</p>
                         <div class="form-group">
                             <label>Your Referral Code</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <h4 id="user_ref_code" class="text-gradient" style="margin:0;">-</h4>
-                                <button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="copyReferralCode()"><i class="fa-solid fa-copy"></i></button>
+                            <div style="display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px;">
+                                <h4 id="user_ref_code" class="text-gradient" style="margin:0; flex: 1;">-</h4>
+                                <button class="btn btn-primary" title="Copy Link" style="padding: 5px 10px; font-size: 0.8rem;" onclick="copyReferralCode()"><i class="fa-solid fa-copy"></i></button>
+                                <button class="btn btn-secondary" title="Share Link" style="padding: 5px 10px; font-size: 0.8rem;" onclick="shareReferralCode()"><i class="fa-solid fa-share-nodes"></i></button>
                             </div>
                         </div>
                         <p>Total Referral Earnings: <strong id="w-ref" class="text-success" style="font-size: 1.2rem;">0.00 USDT</strong></p>
@@ -392,15 +393,13 @@
                     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                     const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     
-                    timeText = `Expires in <span class="text-accent-1">${diffDays} days, ${diffHours} hours</span><br>`;
-                    
                     if (nextProfit <= now) {
-                        timeText += `Next profit in: <span class="text-success">Processing...</span>`;
+                        timeText = `Next profit in: <span class="text-success">Processing...</span>`;
                     } else {
                         const nextDiff = nextProfit - now;
                         const nextHours = Math.floor(nextDiff / (1000 * 60 * 60));
                         const nextMins = Math.floor((nextDiff % (1000 * 60 * 60)) / (1000 * 60));
-                        timeText += `Next profit in: <span class="text-success">${nextHours}h ${nextMins}m</span>`;
+                        timeText = `Next profit in: <span class="text-success">${nextHours}h ${nextMins}m</span>`;
                     }
                 }
                 
@@ -544,8 +543,26 @@
         function copyReferralCode() {
             const code = document.getElementById('user_ref_code').innerText;
             if(code !== '-') {
-                navigator.clipboard.writeText(code);
-                alert("Referral code copied!");
+                const link = `${window.location.origin}/register.html?ref=${code}`;
+                navigator.clipboard.writeText(link);
+                alert("Referral link copied!");
+            }
+        }
+
+        // Share Referral Link
+        function shareReferralCode() {
+            const code = document.getElementById('user_ref_code').innerText;
+            if(code !== '-') {
+                const link = `${window.location.origin}/register.html?ref=${code}`;
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Join NexaYield',
+                        text: 'Join me on NexaYield and start earning daily profits!',
+                        url: link
+                    }).catch(console.error);
+                } else {
+                    alert("Sharing is not supported on this browser.");
+                }
             }
         }
 
