@@ -475,7 +475,6 @@
                         <div class="plan-price">${p.amount} USDT</div>
                         <ul class="plan-details">
                             <li>Daily Return: <strong>${p.daily_percent}%</strong></li>
-                            <li>Duration: <strong>${p.duration_days} Days</strong></li>
                             <li>Total Return: <strong>${(p.amount * (p.daily_percent/100) * p.duration_days).toFixed(2)} USDT</strong></li>
                         </ul>
                         <button onclick="selectPlanFromGrid(${p.id})" class="btn btn-outline" style="width:100%">Select Plan</button>

@@ -68,7 +68,6 @@ async function fetchPlans() {
             <div class="plan-price text-gradient">${p.amount} USDT</div>
             <ul class="plan-details">
                 <li>Daily Return: <strong>${p.daily_percent}%</strong></li>
-                <li>Duration: <strong>${p.duration_days} Days</strong></li>
                 <li>Total Return: <strong>${(p.amount * (p.daily_percent/100) * p.duration_days).toFixed(2)} USDT</strong></li>
             </ul>
             <a href="register.html" class="btn btn-outline">Select Plan</a>
