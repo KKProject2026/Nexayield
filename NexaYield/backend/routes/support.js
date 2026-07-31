@@ -8,14 +8,14 @@ const { QueryTypes } = require('sequelize');
 router.get('/', verifyToken, async (req, res) => {
     try {
         const result = await db.sequelize.query(`
-            SELECT * FROM SUPPORT_MESSAGES 
+            SELECT * FROM support_messages 
             WHERE user_id = :userId 
             ORDER BY created_at ASC
         `, { replacements: { userId: req.userId }, type: QueryTypes.SELECT });
         
         // Mark as read when user fetches messages
         await db.sequelize.query(`
-            UPDATE SUPPORT_MESSAGES 
+            UPDATE support_messages 
             SET is_read = TRUE 
             WHERE user_id = :userId AND sender = 'admin' AND is_read = FALSE
         `, { replacements: { userId: req.userId }, type: QueryTypes.UPDATE });
@@ -52,8 +52,8 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
             SELECT u.id, u.name, u.email, 
                    MAX(sm.created_at) as last_activity,
                    SUM(CASE WHEN sm.is_read = FALSE AND sm.sender = 'user' THEN 1 ELSE 0 END) as unread_count
-            FROM USERS u
-            JOIN SUPPORT_MESSAGES sm ON u.id = sm.user_id
+            FROM users u
+            JOIN support_messages sm ON u.id = sm.user_id
             GROUP BY u.id, u.name, u.email
             ORDER BY last_activity DESC
         `, { type: QueryTypes.SELECT });
@@ -69,14 +69,14 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
 router.get('/:userId', verifyToken, isAdmin, async (req, res) => {
     try {
         const result = await db.sequelize.query(`
-            SELECT * FROM SUPPORT_MESSAGES 
+            SELECT * FROM support_messages 
             WHERE user_id = :userId 
             ORDER BY created_at ASC
         `, { replacements: { userId: req.params.userId }, type: QueryTypes.SELECT });
         
         // Mark as read when admin fetches messages
         await db.sequelize.query(`
-            UPDATE SUPPORT_MESSAGES 
+            UPDATE support_messages 
             SET is_read = TRUE 
             WHERE user_id = :userId AND sender = 'user' AND is_read = FALSE
         `, { replacements: { userId: req.params.userId }, type: QueryTypes.UPDATE });
