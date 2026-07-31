@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {
     timestamps: false,
-    tableName: 'MILESTONE_REWARDS'
+    tableName: 'milestone_rewards'
   });
 
   return MilestoneReward;

@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {
     timestamps: false,
-    tableName: 'USERS'
+    tableName: 'users'
   });
 
   return User;

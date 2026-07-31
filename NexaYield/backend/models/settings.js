@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
     company_qr: { type: DataTypes.STRING }
   }, {
     timestamps: false,
-    tableName: 'SETTINGS'
+    tableName: 'settings'
   });
 
   return Setting;

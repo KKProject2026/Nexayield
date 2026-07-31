@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     status: { type: DataTypes.STRING, defaultValue: 'Active' }
   }, {
     timestamps: false,
-    tableName: 'USER_INVESTMENTS'
+    tableName: 'user_investments'
   });
 
   return UserInvestment;
